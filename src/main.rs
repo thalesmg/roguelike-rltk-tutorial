@@ -59,9 +59,13 @@ fn main() {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
 
+    let (rooms, map) = new_map();
+
+    let (x, y) = rooms[0].center();
+
     gs.ecs
         .create_entity()
-        .with(Position { x: 40, y: 25 })
+        .with(Position { x: x as i32, y: y as i32 })
         .with(Renderable {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),
@@ -70,7 +74,7 @@ fn main() {
         .with(Player {})
         .build();
 
-    gs.ecs.insert(new_map());
+    gs.ecs.insert(map);
 
     rltk::main_loop(context, gs);
 }
