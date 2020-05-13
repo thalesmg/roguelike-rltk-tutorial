@@ -4,9 +4,9 @@ use specs::prelude::*;
 use std::cmp::max;
 use std::cmp::min;
 
-use crate::State;
 use crate::components::*;
 use crate::map::*;
+use crate::State;
 
 pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut positions = ecs.write_storage::<Position>();

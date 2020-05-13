@@ -65,7 +65,10 @@ fn main() {
 
     gs.ecs
         .create_entity()
-        .with(Position { x: x as i32, y: y as i32 })
+        .with(Position {
+            x: x as i32,
+            y: y as i32,
+        })
         .with(Renderable {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),

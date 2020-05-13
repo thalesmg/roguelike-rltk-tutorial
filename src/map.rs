@@ -1,6 +1,6 @@
 use rltk::Console;
-use rltk::RGB;
 use rltk::Rltk;
+use rltk::RGB;
 use std::cmp::max;
 use std::cmp::min;
 
@@ -86,7 +86,7 @@ pub struct Rect {
 
 impl Rect {
     fn new(x: usize, y: usize, h: usize, w: usize) -> Self {
-        Self{
+        Self {
             x1: x,
             y1: y,
             x2: x + w,
@@ -95,8 +95,7 @@ impl Rect {
     }
 
     fn intersects(&self, other: &Rect) -> bool {
-        self.x1 <= other.x2 && other.x1 <= self.x2 &&
-            self.y1 <= other.y2 && other.y1 <= self.y2
+        self.x1 <= other.x2 && other.x1 <= self.x2 && self.y1 <= other.y2 && other.y1 <= self.y2
     }
 
     pub fn center(&self) -> (usize, usize) {
@@ -242,24 +241,54 @@ mod tests {
 
     #[test]
     fn intersects_partial() {
-        let r1 = Rect{x1: 0, y1: 0, x2: 5, y2: 5};
-        let r2 = Rect{x1: 2, y1: 2, x2: 7, y2: 7};
+        let r1 = Rect {
+            x1: 0,
+            y1: 0,
+            x2: 5,
+            y2: 5,
+        };
+        let r2 = Rect {
+            x1: 2,
+            y1: 2,
+            x2: 7,
+            y2: 7,
+        };
         assert!(r1.intersects(&r2));
         assert!(r2.intersects(&r1));
     }
 
     #[test]
     fn intersects_contained() {
-        let r1 = Rect{x1: 0, y1: 0, x2: 5, y2: 5};
-        let r2 = Rect{x1: 2, y1: 2, x2: 3, y2: 3};
+        let r1 = Rect {
+            x1: 0,
+            y1: 0,
+            x2: 5,
+            y2: 5,
+        };
+        let r2 = Rect {
+            x1: 2,
+            y1: 2,
+            x2: 3,
+            y2: 3,
+        };
         assert!(r1.intersects(&r2));
         assert!(r2.intersects(&r1));
     }
 
     #[test]
     fn intersects_separated() {
-        let r1 = Rect{x1: 0, y1: 0, x2: 5, y2: 5};
-        let r2 = Rect{x1: 6, y1: 6, x2: 7, y2: 7};
+        let r1 = Rect {
+            x1: 0,
+            y1: 0,
+            x2: 5,
+            y2: 5,
+        };
+        let r2 = Rect {
+            x1: 6,
+            y1: 6,
+            x2: 7,
+            y2: 7,
+        };
         assert!(!r1.intersects(&r2));
         assert!(!r2.intersects(&r1));
     }

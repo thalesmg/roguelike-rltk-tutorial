@@ -1,5 +1,5 @@
-use specs::prelude::*;
 use rltk::RGB;
+use specs::prelude::*;
 
 pub struct Position {
     pub x: i32,
