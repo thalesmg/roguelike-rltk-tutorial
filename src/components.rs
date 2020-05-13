@@ -19,3 +19,9 @@ pub struct Renderable {
 
 #[derive(Component, Debug)]
 pub struct Player {}
+
+#[derive(Component)]
+pub struct Viewshed {
+    range: u8,
+    visible_tiles: Vec<rltk::Point>,
+}

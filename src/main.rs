@@ -39,8 +39,8 @@ impl GameState for State {
 
         player_input(self, ctx);
 
-        let map = self.ecs.fetch::<Vec<TileType>>();
-        draw_map(&map, ctx);
+        let map = self.ecs.fetch::<Map>();
+        map.draw_map(ctx);
 
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
@@ -59,9 +59,9 @@ fn main() {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
 
-    let (rooms, map) = new_map();
+    let map = new_map();
 
-    let (x, y) = rooms[0].center();
+    let (x, y) = map.rooms[0].center();
 
     gs.ecs
         .create_entity()

@@ -16,6 +16,66 @@ pub enum TileType {
     Floor,
 }
 
+pub struct Map {
+    pub tiles: Vec<TileType>,
+    pub width: usize,
+    pub height: usize,
+    pub rooms: Vec<Rect>,
+}
+
+impl Map {
+    fn new(width: usize, height: usize) -> Self {
+        Self {
+            width,
+            height,
+            tiles: vec![TileType::Wall; width * height],
+            rooms: Vec::new(),
+        }
+    }
+
+    fn apply_room(&mut self, room: &Rect) {
+        for x in room.x1 + 1..=room.x2 {
+            for y in room.y1 + 1..=room.y2 {
+                self.tiles[xy_idx(x as i32, y as i32)] = TileType::Floor;
+            }
+        }
+    }
+
+    fn apply_horizontal_tunnel(&mut self, x1: usize, x2: usize, y: usize) {
+        for x in min(x1, x2)..=max(x1, x2) {
+            self.tiles[xy_idx(x as i32, y as i32)] = TileType::Floor;
+        }
+    }
+
+    fn apply_vertical_tunnel(&mut self, y1: usize, y2: usize, x: usize) {
+        for y in min(y1, y2)..=max(y1, y2) {
+            self.tiles[xy_idx(x as i32, y as i32)] = TileType::Floor;
+        }
+    }
+
+    pub fn draw_map(&self, ctx: &mut Rltk) {
+        for (i, tile) in self.tiles.iter().enumerate() {
+            let (x, y) = idx_xy(i);
+            match tile {
+                TileType::Floor => ctx.set(
+                    x,
+                    y,
+                    RGB::from_f32(0.5, 0.5, 0.5),
+                    RGB::from_f32(0., 0., 0.),
+                    rltk::to_cp437('.'),
+                ),
+                TileType::Wall => ctx.set(
+                    x,
+                    y,
+                    RGB::from_f32(0., 1., 0.),
+                    RGB::from_f32(0., 0., 0.),
+                    rltk::to_cp437('#'),
+                ),
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Rect {
     pub x1: usize,
@@ -54,10 +114,8 @@ pub fn idx_xy(idx: usize) -> (i32, i32) {
     (x as i32, y as i32)
 }
 
-pub fn new_map() -> (Vec<Rect>, Vec<TileType>) {
-    let mut map = vec![TileType::Wall; WIDTH * HEIGHT];
-
-    let mut rooms = Vec::with_capacity(MAX_ROOMS);
+pub fn new_map() -> Map {
+    let mut map = Map::new(WIDTH, HEIGHT);
 
     let mut rng = rltk::RandomNumberGenerator::new();
 
@@ -69,32 +127,33 @@ pub fn new_map() -> (Vec<Rect>, Vec<TileType>) {
 
         let room = Rect::new(x as usize, y as usize, h, w);
 
-        for other_room in rooms.iter() {
+        for other_room in map.rooms.iter() {
             if room.intersects(other_room) {
                 continue 'room_loop;
             }
         }
 
-        apply_room_to_map(&room, &mut map);
-        if rooms.len() != 0 {
-            let (last_x, last_y) = rooms[rooms.len() - 1].center();
+        map.apply_room(&room);
+        if map.rooms.len() != 0 {
+            let (last_x, last_y) = map.rooms[map.rooms.len() - 1].center();
             let (new_x, new_y) = room.center();
 
             if rng.rand() {
-                apply_horizontal_tunnel(&mut map, last_x, new_x, last_y);
-                apply_vertical_tunnel(&mut map, last_y, new_y, new_x);
+                map.apply_horizontal_tunnel(last_x, new_x, last_y);
+                map.apply_vertical_tunnel(last_y, new_y, new_x);
             } else {
-                apply_horizontal_tunnel(&mut map, last_x, new_x, new_y);
-                apply_vertical_tunnel(&mut map, last_y, new_y, last_x);
+                map.apply_horizontal_tunnel(last_x, new_x, new_y);
+                map.apply_vertical_tunnel(last_y, new_y, last_x);
             }
         }
 
-        rooms.push(room);
+        map.rooms.push(room);
     }
 
-    (rooms, map)
+    map
 }
 
+#[allow(dead_code)]
 pub fn new_map_test() -> Vec<TileType> {
     let mut map = vec![TileType::Floor; WIDTH * HEIGHT];
 
@@ -122,48 +181,6 @@ pub fn new_map_test() -> Vec<TileType> {
     }
 
     map
-}
-
-pub fn draw_map(map: &[TileType], ctx: &mut Rltk) {
-    for (i, tile) in map.iter().enumerate() {
-        let (x, y) = idx_xy(i);
-        match tile {
-            TileType::Floor => ctx.set(
-                x,
-                y,
-                RGB::from_f32(0.5, 0.5, 0.5),
-                RGB::from_f32(0., 0., 0.),
-                rltk::to_cp437('.'),
-            ),
-            TileType::Wall => ctx.set(
-                x,
-                y,
-                RGB::from_f32(0., 1., 0.),
-                RGB::from_f32(0., 0., 0.),
-                rltk::to_cp437('#'),
-            ),
-        }
-    }
-}
-
-fn apply_room_to_map(room: &Rect, map: &mut [TileType]) {
-    for x in room.x1 + 1..=room.x2 {
-        for y in room.y1 + 1..=room.y2 {
-            map[xy_idx(x as i32, y as i32)] = TileType::Floor;
-        }
-    }
-}
-
-fn apply_horizontal_tunnel(map: &mut [TileType], x1: usize, x2: usize, y: usize) {
-    for x in min(x1, x2)..=max(x1, x2) {
-        map[xy_idx(x as i32, y as i32)] = TileType::Floor;
-    }
-}
-
-fn apply_vertical_tunnel(map: &mut [TileType], y1: usize, y2: usize, x: usize) {
-    for y in min(y1, y2)..=max(y1, y2) {
-        map[xy_idx(x as i32, y as i32)] = TileType::Floor;
-    }
 }
 
 #[cfg(test)]
