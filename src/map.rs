@@ -1,4 +1,3 @@
-use rltk::Console;
 use rltk::Rltk;
 use rltk::RGB;
 use std::cmp::max;

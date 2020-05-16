@@ -12,7 +12,7 @@ impl Component for Position {
 
 #[derive(Component)]
 pub struct Renderable {
-    pub glyph: u8,
+    pub glyph: u16,
     pub fg: RGB,
     pub bg: RGB,
 }

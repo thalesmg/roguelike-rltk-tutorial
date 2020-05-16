@@ -9,7 +9,7 @@ mod components;
 mod map;
 mod player;
 
-use rltk::Console;
+use rltk::RltkBuilder;
 use rltk::GameState;
 use rltk::Rltk;
 use rltk::RGB;
@@ -51,8 +51,10 @@ impl GameState for State {
     }
 }
 
-fn main() {
-    let context = Rltk::init_simple8x8(WIDTH as u32, HEIGHT as u32, "Olá mundo!", "resources");
+fn main() -> rltk::BError {
+    let context = RltkBuilder::simple80x50()
+        .with_title("Olá mundo!")
+        .build()?;
     let mut gs = State { ecs: World::new() };
 
     gs.ecs.register::<Position>();
@@ -80,4 +82,6 @@ fn main() {
     gs.ecs.insert(map);
 
     rltk::main_loop(context, gs);
+
+    Ok(())
 }
