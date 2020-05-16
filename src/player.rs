@@ -6,6 +6,7 @@ use std::cmp::min;
 
 use crate::components::*;
 use crate::map::*;
+use crate::RunState;
 use crate::State;
 
 pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
@@ -24,9 +25,9 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     }
 }
 
-pub fn player_input(gs: &mut State, ctx: &Rltk) {
+pub fn player_input(gs: &mut State, ctx: &Rltk) -> RunState {
     match ctx.key {
-        None => (),
+        None => return RunState::Paused,
         Some(key) => match key {
             VirtualKeyCode::Left => try_move_player(-1, 0, &mut gs.ecs),
             VirtualKeyCode::H => try_move_player(-1, 0, &mut gs.ecs),
@@ -36,7 +37,8 @@ pub fn player_input(gs: &mut State, ctx: &Rltk) {
             VirtualKeyCode::K => try_move_player(0, -1, &mut gs.ecs),
             VirtualKeyCode::Down => try_move_player(0, 1, &mut gs.ecs),
             VirtualKeyCode::J => try_move_player(0, 1, &mut gs.ecs),
-            _ => (),
+            _ => return RunState::Paused,
         },
     }
+    RunState::Running
 }

@@ -7,6 +7,7 @@ extern crate quickcheck_macros;
 
 mod components;
 mod map;
+mod monster_ai_system;
 mod player;
 mod visibility_system;
 
@@ -18,19 +19,29 @@ use specs::prelude::*;
 
 use crate::components::*;
 use crate::map::*;
+use crate::monster_ai_system::MonsterAISystem;
 use crate::player::*;
 use crate::visibility_system::VisibilitySystem;
 
 rltk::add_wasm_support!();
 
+#[derive(Clone, Copy, PartialEq)]
+pub enum RunState {
+    Paused,
+    Running,
+}
+
 pub struct State {
     pub ecs: World,
+    pub runstate: RunState,
 }
 
 impl State {
     fn run_systems(&mut self) {
         let mut visibility_system = VisibilitySystem {};
         visibility_system.run_now(&self.ecs);
+        let mut monster_ai_system = MonsterAISystem {};
+        monster_ai_system.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -39,9 +50,13 @@ impl GameState for State {
     fn tick(&mut self, ctx: &mut Rltk) {
         ctx.cls();
 
-        self.run_systems();
-
-        player_input(self, ctx);
+        match self.runstate {
+            RunState::Paused => self.runstate = player_input(self, ctx),
+            RunState::Running => {
+                self.run_systems();
+                self.runstate = RunState::Paused;
+            }
+        }
 
         draw_map(&self.ecs, ctx);
 
@@ -61,12 +76,16 @@ fn main() -> rltk::BError {
     let context = RltkBuilder::simple80x50()
         .with_title("Olá mundo!")
         .build()?;
-    let mut gs = State { ecs: World::new() };
+    let mut gs = State {
+        ecs: World::new(),
+        runstate: RunState::Running,
+    };
 
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
     gs.ecs.register::<Viewshed>();
+    gs.ecs.register::<Monster>();
 
     let map = new_map();
 
@@ -91,8 +110,16 @@ fn main() -> rltk::BError {
         })
         .build();
 
+    let mut rng = rltk::RandomNumberGenerator::new();
+
     for room in map.rooms.iter().skip(1) {
         let (x, y) = room.center();
+        let glyph = if rng.rand() {
+            rltk::to_cp437('g')
+        } else {
+            rltk::to_cp437('o')
+        };
+
         gs.ecs
             .create_entity()
             .with(Position {
@@ -100,7 +127,7 @@ fn main() -> rltk::BError {
                 y: y as i32,
             })
             .with(Renderable {
-                glyph: rltk::to_cp437('g'),
+                glyph,
                 fg: RGB::named(rltk::RED),
                 bg: RGB::named(rltk::BLACK),
             })
@@ -109,6 +136,7 @@ fn main() -> rltk::BError {
                 visible_tiles: Vec::new(),
                 dirty: true,
             })
+            .with(Monster {})
             .build();
     }
 

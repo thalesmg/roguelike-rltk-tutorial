@@ -26,3 +26,6 @@ pub struct Viewshed {
     pub visible_tiles: Vec<rltk::Point>,
     pub dirty: bool,
 }
+
+#[derive(Component)]
+pub struct Monster {}
