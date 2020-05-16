@@ -8,16 +8,18 @@ extern crate quickcheck_macros;
 mod components;
 mod map;
 mod player;
+mod visibility_system;
 
-use rltk::RltkBuilder;
 use rltk::GameState;
 use rltk::Rltk;
+use rltk::RltkBuilder;
 use rltk::RGB;
 use specs::prelude::*;
 
 use crate::components::*;
 use crate::map::*;
 use crate::player::*;
+use crate::visibility_system::VisibilitySystem;
 
 rltk::add_wasm_support!();
 
@@ -27,6 +29,8 @@ pub struct State {
 
 impl State {
     fn run_systems(&mut self) {
+        let mut visibility_system = VisibilitySystem {};
+        visibility_system.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -39,8 +43,7 @@ impl GameState for State {
 
         player_input(self, ctx);
 
-        let map = self.ecs.fetch::<Map>();
-        map.draw_map(ctx);
+        draw_map(&self.ecs, ctx);
 
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
@@ -60,6 +63,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
+    gs.ecs.register::<Viewshed>();
 
     let map = new_map();
 
@@ -77,11 +81,16 @@ fn main() -> rltk::BError {
             bg: RGB::named(rltk::BLACK),
         })
         .with(Player {})
+        .with(Viewshed {
+            range: 8,
+            visible_tiles: Vec::new(),
+            dirty: true,
+        })
         .build();
 
     gs.ecs.insert(map);
 
-    rltk::main_loop(context, gs);
+    rltk::main_loop(context, gs)?;
 
     Ok(())
 }

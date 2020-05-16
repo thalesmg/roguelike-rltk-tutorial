@@ -22,6 +22,7 @@ pub struct Player {}
 
 #[derive(Component)]
 pub struct Viewshed {
-    range: u8,
-    visible_tiles: Vec<rltk::Point>,
+    pub range: u8,
+    pub visible_tiles: Vec<rltk::Point>,
+    pub dirty: bool,
 }
