@@ -47,9 +47,12 @@ impl GameState for State {
 
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
+        let map = self.ecs.fetch::<Map>();
 
         for (pos, render) in (&positions, &renderables).join() {
-            ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
+            if map.visible_tiles[xy_idx(pos.x, pos.y)] {
+                ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
+            }
         }
     }
 }
@@ -87,6 +90,27 @@ fn main() -> rltk::BError {
             dirty: true,
         })
         .build();
+
+    for room in map.rooms.iter().skip(1) {
+        let (x, y) = room.center();
+        gs.ecs
+            .create_entity()
+            .with(Position {
+                x: x as i32,
+                y: y as i32,
+            })
+            .with(Renderable {
+                glyph: rltk::to_cp437('g'),
+                fg: RGB::named(rltk::RED),
+                bg: RGB::named(rltk::BLACK),
+            })
+            .with(Viewshed {
+                range: 8,
+                visible_tiles: Vec::new(),
+                dirty: true,
+            })
+            .build();
+    }
 
     gs.ecs.insert(map);
 
