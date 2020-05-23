@@ -1,24 +1,28 @@
 use rltk::console;
+use rltk::Point;
 use specs::prelude::*;
 
 use crate::components::Monster;
-use crate::components::Position;
 use crate::components::Viewshed;
+use crate::components::Name;
 
 pub struct MonsterAISystem {}
 
 impl<'a> System<'a> for MonsterAISystem {
     type SystemData = (
+        ReadExpect<'a, Point>,
         ReadStorage<'a, Viewshed>,
         ReadStorage<'a, Monster>,
-        ReadStorage<'a, Position>,
+        ReadStorage<'a, Name>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (viewsheds, monsters, positions) = data;
+        let (player_pos, viewsheds, monsters, names) = data;
 
-        for (viewshed, monster, pos) in (&viewsheds, &monsters, &positions).join() {
-            console::log("monstrando");
+        for (viewshed, _monster, Name(name)) in (&viewsheds, &monsters, &names).join() {
+            if viewshed.visible_tiles.contains(&*player_pos) {
+                console::log(format!("{} manda vc para aquele lugar.", name));
+            }
         }
     }
 }

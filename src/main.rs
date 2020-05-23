@@ -15,6 +15,7 @@ use rltk::GameState;
 use rltk::Rltk;
 use rltk::RltkBuilder;
 use rltk::RGB;
+use rltk::Point;
 use specs::prelude::*;
 
 use crate::components::*;
@@ -86,6 +87,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Player>();
     gs.ecs.register::<Viewshed>();
     gs.ecs.register::<Monster>();
+    gs.ecs.register::<Name>();
 
     let map = new_map();
 
@@ -108,16 +110,17 @@ fn main() -> rltk::BError {
             visible_tiles: Vec::new(),
             dirty: true,
         })
+        .with(Name("Player".to_string()))
         .build();
 
     let mut rng = rltk::RandomNumberGenerator::new();
 
-    for room in map.rooms.iter().skip(1) {
+    for (i, room) in map.rooms.iter().skip(1).enumerate() {
         let (x, y) = room.center();
-        let glyph = if rng.rand() {
-            rltk::to_cp437('g')
+        let (glyph, name) = if rng.rand() {
+            (rltk::to_cp437('g'), "Goblin".to_string())
         } else {
-            rltk::to_cp437('o')
+            (rltk::to_cp437('o'), "Orc".to_string())
         };
 
         gs.ecs
@@ -137,10 +140,12 @@ fn main() -> rltk::BError {
                 dirty: true,
             })
             .with(Monster {})
+            .with(Name(format!("{} {}", name, i)))
             .build();
     }
 
     gs.ecs.insert(map);
+    gs.ecs.insert(Point::new(x, y));
 
     rltk::main_loop(context, gs)?;
 
