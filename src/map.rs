@@ -3,6 +3,8 @@ use rltk::BaseMap;
 use rltk::Point;
 use rltk::Rltk;
 use rltk::RGB;
+use rltk::SmallVec;
+use rltk::smallvec;
 use specs::World;
 use std::cmp::max;
 use std::cmp::min;
@@ -59,11 +61,55 @@ impl Map {
             self.tiles[xy_idx(x as i32, y as i32)] = TileType::Floor;
         }
     }
+
+    fn is_exit_valid(&self, x: usize, y: usize) -> bool {
+        if x < 1 || x > self.width - 1 || y < 1 || y > self.height - 1 {
+            return false;
+        }
+        let idx = xy_idx(x as i32, y as i32);
+        self.tiles[idx] != TileType::Wall
+    }
+
+    pub fn xy_idx(&self, x: usize, y: usize) -> usize {
+        (y * self.width) + x
+    }
+
+    pub fn idx_xy(&self, idx: usize) -> (usize, usize) {
+        let y = idx / self.width;
+        let x = idx % self.width;
+        (x, y)
+    }
 }
 
 impl BaseMap for Map {
     fn is_opaque(&self, idx: usize) -> bool {
         self.tiles[idx] == TileType::Wall
+    }
+
+    fn get_available_exits(&self, idx: usize) -> SmallVec<[(usize, f32); 10]> {
+        let mut exits = smallvec![];
+        let (x, y) = self.idx_xy(idx);
+        let w = self.width;
+
+        if self.is_exit_valid(x - 1, y) { exits.push((idx - 1, 1.0)) };
+        if self.is_exit_valid(x + 1, y) { exits.push((idx + 1, 1.0)) };
+        if self.is_exit_valid(x, y - 1) { exits.push((idx - w, 1.0)) };
+        if self.is_exit_valid(x, y + 1) { exits.push((idx + w, 1.0)) };
+
+        if self.is_exit_valid(x - 1, y - 1) { exits.push((idx - w - 1, 1.45)) };
+        if self.is_exit_valid(x + 1, y - 1) { exits.push((idx - w + 1, 1.45)) };
+        if self.is_exit_valid(x - 1, y + 1) { exits.push((idx + w - 1, 1.45)) };
+        if self.is_exit_valid(x + 1, y + 1) { exits.push((idx + w + 1, 1.45)) };
+
+        exits
+    }
+
+    fn get_pathing_distance(&self, idx1: usize, idx2: usize) -> f32 {
+        let (x1, y1) = self.idx_xy(idx1);
+        let (x2, y2) = self.idx_xy(idx2);
+        let p1 = Point::new(x1, y1);
+        let p2 = Point::new(x2, y2);
+        rltk::DistanceAlg::Pythagoras.distance2d(p1, p2)
     }
 }
 

@@ -110,7 +110,7 @@ fn main() -> rltk::BError {
             visible_tiles: Vec::new(),
             dirty: true,
         })
-        .with(Name("Player".to_string()))
+        .with(Name { name: "Player".to_string() })
         .build();
 
     let mut rng = rltk::RandomNumberGenerator::new();
@@ -140,7 +140,7 @@ fn main() -> rltk::BError {
                 dirty: true,
             })
             .with(Monster {})
-            .with(Name(format!("{} {}", name, i)))
+            .with(Name { name: format!("{} {}", name, i) })
             .build();
     }
 
