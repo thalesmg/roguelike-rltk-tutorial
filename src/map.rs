@@ -28,6 +28,7 @@ pub struct Map {
     pub rooms: Vec<Rect>,
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
+    pub blocked: Vec<bool>,
 }
 
 impl Map {
@@ -39,6 +40,7 @@ impl Map {
             rooms: Vec::new(),
             revealed_tiles: vec![false; width * height],
             visible_tiles: vec![false; width * height],
+            blocked: vec![false; width * height]
         }
     }
 
@@ -66,8 +68,8 @@ impl Map {
         if x < 1 || x > self.width - 1 || y < 1 || y > self.height - 1 {
             return false;
         }
-        let idx = xy_idx(x as i32, y as i32);
-        self.tiles[idx] != TileType::Wall
+        let idx = self.xy_idx(x, y);
+        !self.blocked[idx]
     }
 
     pub fn xy_idx(&self, x: usize, y: usize) -> usize {
@@ -78,6 +80,12 @@ impl Map {
         let y = idx / self.width;
         let x = idx % self.width;
         (x, y)
+    }
+
+    pub fn populate_blocked(&mut self) {
+        for (i, tile) in self.tiles.iter().enumerate() {
+            self.blocked[i] = tile == &TileType::Wall;
+        }
     }
 }
 

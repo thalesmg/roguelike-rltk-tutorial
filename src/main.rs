@@ -10,6 +10,7 @@ mod map;
 mod monster_ai_system;
 mod player;
 mod visibility_system;
+mod map_indexing_system;
 
 use rltk::GameState;
 use rltk::Rltk;
@@ -23,6 +24,7 @@ use crate::map::*;
 use crate::monster_ai_system::MonsterAISystem;
 use crate::player::*;
 use crate::visibility_system::VisibilitySystem;
+use crate::map_indexing_system::MapIndexingSystem;
 
 rltk::add_wasm_support!();
 
@@ -43,6 +45,8 @@ impl State {
         visibility_system.run_now(&self.ecs);
         let mut monster_ai_system = MonsterAISystem {};
         monster_ai_system.run_now(&self.ecs);
+        let mut map_indexing_system = MapIndexingSystem {};
+        map_indexing_system.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -88,6 +92,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Viewshed>();
     gs.ecs.register::<Monster>();
     gs.ecs.register::<Name>();
+    gs.ecs.register::<BlocksTile>();
 
     let map = new_map();
 
@@ -111,6 +116,7 @@ fn main() -> rltk::BError {
             dirty: true,
         })
         .with(Name { name: "Player".to_string() })
+        .with(BlocksTile {})
         .build();
 
     let mut rng = rltk::RandomNumberGenerator::new();
@@ -141,6 +147,7 @@ fn main() -> rltk::BError {
             })
             .with(Monster {})
             .with(Name { name: format!("{} {}", name, i) })
+            .with(BlocksTile {})
             .build();
     }
 

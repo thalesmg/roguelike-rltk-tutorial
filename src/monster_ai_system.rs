@@ -24,8 +24,11 @@ impl<'a> System<'a> for MonsterAISystem {
         let (map, player_pos, monsters, names, mut viewsheds, mut positions) = data;
 
         for (mut viewshed, _monster, name, mut pos) in (&mut viewsheds, &monsters, &names, &mut positions).join() {
-            if viewshed.visible_tiles.contains(&*player_pos) {
+            let distance = rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
+
+            if distance < 1.5 {
                 console::log(format!("{} manda vc para aquele lugar.", name.name));
+            } else if viewshed.visible_tiles.contains(&*player_pos) {
                 let path = rltk::a_star_search(
                     map.xy_idx(pos.x as usize, pos.y as usize),
                     map.xy_idx(player_pos.x as usize, player_pos.y as usize),

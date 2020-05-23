@@ -19,7 +19,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
 
     for (pos, _player, viewshed) in (&mut positions, &mut players, &mut viewsheds).join() {
         let dest_idx = xy_idx(pos.x + delta_x, pos.y + delta_y);
-        if map.tiles[dest_idx] != TileType::Wall {
+        if !map.blocked[dest_idx] {
             pos.x = min(WIDTH as i32 - 1, max(0, pos.x + delta_x));
             pos.y = min(HEIGHT as i32 - 1, max(0, pos.y + delta_y));
             ppos.x = pos.x;
