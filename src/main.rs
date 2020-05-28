@@ -6,29 +6,29 @@ extern crate specs_derive;
 extern crate quickcheck_macros;
 
 mod components;
+mod damage_system;
 mod map;
+mod map_indexing_system;
+mod melee_combat_system;
 mod monster_ai_system;
 mod player;
 mod visibility_system;
-mod map_indexing_system;
-mod melee_combat_system;
-mod damage_system;
 
 use rltk::GameState;
+use rltk::Point;
 use rltk::Rltk;
 use rltk::RltkBuilder;
 use rltk::RGB;
-use rltk::Point;
 use specs::prelude::*;
 
 use crate::components::*;
+use crate::damage_system::DamageSystem;
 use crate::map::*;
+use crate::map_indexing_system::MapIndexingSystem;
+use crate::melee_combat_system::MeleeCombatSystem;
 use crate::monster_ai_system::MonsterAISystem;
 use crate::player::*;
 use crate::visibility_system::VisibilitySystem;
-use crate::map_indexing_system::MapIndexingSystem;
-use crate::melee_combat_system::MeleeCombatSystem;
-use crate::damage_system::DamageSystem;
 
 rltk::add_wasm_support!();
 
@@ -110,7 +110,8 @@ fn main() -> rltk::BError {
 
     let (x, y) = map.rooms[0].center();
 
-    let player = gs.ecs
+    let player = gs
+        .ecs
         .create_entity()
         .with(Position {
             x: x as i32,
@@ -127,7 +128,9 @@ fn main() -> rltk::BError {
             visible_tiles: Vec::new(),
             dirty: true,
         })
-        .with(Name { name: "Player".to_string() })
+        .with(Name {
+            name: "Player".to_string(),
+        })
         .with(BlocksTile {})
         .with(CombatStats {
             max_hp: 30,
@@ -165,7 +168,9 @@ fn main() -> rltk::BError {
                 dirty: true,
             })
             .with(Monster {})
-            .with(Name { name: format!("{} {}", name, i) })
+            .with(Name {
+                name: format!("{} {}", name, i),
+            })
             .with(BlocksTile {})
             .with(CombatStats {
                 max_hp: 16,

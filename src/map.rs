@@ -1,12 +1,12 @@
+use rltk::smallvec;
 use rltk::Algorithm2D;
 use rltk::BaseMap;
 use rltk::Point;
 use rltk::Rltk;
-use rltk::RGB;
 use rltk::SmallVec;
-use rltk::smallvec;
-use specs::World;
+use rltk::RGB;
 use specs::Entity;
+use specs::World;
 use std::cmp::max;
 use std::cmp::min;
 
@@ -107,16 +107,32 @@ impl BaseMap for Map {
         let w = self.width;
 
         // cardinal
-        if self.is_exit_valid(x - 1, y) { exits.push((idx - 1, 1.0)) };
-        if self.is_exit_valid(x + 1, y) { exits.push((idx + 1, 1.0)) };
-        if self.is_exit_valid(x, y - 1) { exits.push((idx - w, 1.0)) };
-        if self.is_exit_valid(x, y + 1) { exits.push((idx + w, 1.0)) };
+        if self.is_exit_valid(x - 1, y) {
+            exits.push((idx - 1, 1.0))
+        };
+        if self.is_exit_valid(x + 1, y) {
+            exits.push((idx + 1, 1.0))
+        };
+        if self.is_exit_valid(x, y - 1) {
+            exits.push((idx - w, 1.0))
+        };
+        if self.is_exit_valid(x, y + 1) {
+            exits.push((idx + w, 1.0))
+        };
 
         // diagonal
-        if self.is_exit_valid(x - 1, y - 1) { exits.push((idx - w - 1, 1.45)) };
-        if self.is_exit_valid(x + 1, y - 1) { exits.push((idx - w + 1, 1.45)) };
-        if self.is_exit_valid(x - 1, y + 1) { exits.push((idx + w - 1, 1.45)) };
-        if self.is_exit_valid(x + 1, y + 1) { exits.push((idx + w + 1, 1.45)) };
+        if self.is_exit_valid(x - 1, y - 1) {
+            exits.push((idx - w - 1, 1.45))
+        };
+        if self.is_exit_valid(x + 1, y - 1) {
+            exits.push((idx - w + 1, 1.45))
+        };
+        if self.is_exit_valid(x - 1, y + 1) {
+            exits.push((idx + w - 1, 1.45))
+        };
+        if self.is_exit_valid(x + 1, y + 1) {
+            exits.push((idx + w + 1, 1.45))
+        };
 
         exits
     }

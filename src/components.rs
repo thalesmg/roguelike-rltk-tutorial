@@ -31,7 +31,9 @@ pub struct Viewshed {
 pub struct Monster {}
 
 #[derive(Component)]
-pub struct Name { pub name: String, }
+pub struct Name {
+    pub name: String,
+}
 
 #[derive(Component)]
 pub struct BlocksTile {}
@@ -41,7 +43,7 @@ pub struct CombatStats {
     pub max_hp: u32,
     pub hp: i32,
     pub defense: u32,
-    pub power: u32
+    pub power: u32,
 }
 
 #[derive(Component)]
@@ -59,8 +61,12 @@ impl SufferDamage {
         if let Some(suffering) = store.get_mut(victim) {
             suffering.amount.push(amount);
         } else {
-            let dmg = Self { amount: vec![amount] };
-            store.insert(victim, dmg).expect("não deu para inserir dano!");
+            let dmg = Self {
+                amount: vec![amount],
+            };
+            store
+                .insert(victim, dmg)
+                .expect("não deu para inserir dano!");
         }
     }
 }

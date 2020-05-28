@@ -1,6 +1,6 @@
+use rltk::Point;
 use rltk::Rltk;
 use rltk::VirtualKeyCode;
-use rltk::Point;
 use specs::prelude::*;
 use std::cmp::max;
 use std::cmp::min;
@@ -20,12 +20,21 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let entities = ecs.entities();
     let map = ecs.fetch::<Map>();
 
-    for (pos, _player, viewshed, entity) in (&mut positions, &mut players, &mut viewsheds, &entities).join() {
+    for (pos, _player, viewshed, entity) in
+        (&mut positions, &mut players, &mut viewsheds, &entities).join()
+    {
         let dest_idx = xy_idx(pos.x + delta_x, pos.y + delta_y);
 
         for potential_target in map.tile_content[dest_idx].iter() {
             if let Some(_) = combat_stats.get(*potential_target) {
-                wants_to_melee.insert(entity, WantsToMelee { target: *potential_target }).expect("não consegui inserir a vontade de tretar!");
+                wants_to_melee
+                    .insert(
+                        entity,
+                        WantsToMelee {
+                            target: *potential_target,
+                        },
+                    )
+                    .expect("não consegui inserir a vontade de tretar!");
                 return;
             }
         }
@@ -44,17 +53,13 @@ pub fn player_input(gs: &mut State, ctx: &Rltk) -> RunState {
     match ctx.key {
         None => return RunState::Paused,
         Some(key) => match key {
-            VirtualKeyCode::Left |
-            VirtualKeyCode::H => try_move_player(-1, 0, &mut gs.ecs),
+            VirtualKeyCode::Left | VirtualKeyCode::H => try_move_player(-1, 0, &mut gs.ecs),
 
-            VirtualKeyCode::Right |
-            VirtualKeyCode::L => try_move_player(1, 0, &mut gs.ecs),
+            VirtualKeyCode::Right | VirtualKeyCode::L => try_move_player(1, 0, &mut gs.ecs),
 
-            VirtualKeyCode::Up |
-            VirtualKeyCode::K => try_move_player(0, -1, &mut gs.ecs),
+            VirtualKeyCode::Up | VirtualKeyCode::K => try_move_player(0, -1, &mut gs.ecs),
 
-            VirtualKeyCode::Down |
-            VirtualKeyCode::J => try_move_player(0, 1, &mut gs.ecs),
+            VirtualKeyCode::Down | VirtualKeyCode::J => try_move_player(0, 1, &mut gs.ecs),
 
             VirtualKeyCode::U => try_move_player(1, -1, &mut gs.ecs),
 

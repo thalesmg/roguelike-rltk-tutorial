@@ -1,8 +1,8 @@
 use specs::prelude::*;
 
-use crate::map::Map;
-use crate::components::Position;
 use crate::components::BlocksTile;
+use crate::components::Position;
+use crate::map::Map;
 
 pub struct MapIndexingSystem {}
 

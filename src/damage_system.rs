@@ -1,6 +1,6 @@
+use rltk::console;
 use specs::prelude::*;
 use specs::World;
-use rltk::console;
 
 use crate::components::*;
 
@@ -31,7 +31,8 @@ pub fn delete_the_dead(ecs: &mut World) {
         let combat_stats = ecs.write_storage::<CombatStats>();
         let player_entity = ecs.fetch::<Entity>();
         let entities = ecs.entities();
-        (&combat_stats, &entities).join()
+        (&combat_stats, &entities)
+            .join()
             .for_each(|(stats, entity)| {
                 if stats.hp <= 0 {
                     if entity == *player_entity {
@@ -43,5 +44,8 @@ pub fn delete_the_dead(ecs: &mut World) {
             });
     }
 
-    dead.iter().for_each(|d| ecs.delete_entity(*d).expect("não consegui remover um morto!"));
+    dead.iter().for_each(|d| {
+        ecs.delete_entity(*d)
+            .expect("não consegui remover um morto!")
+    });
 }
