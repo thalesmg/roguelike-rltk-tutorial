@@ -6,6 +6,7 @@ use rltk::RGB;
 use rltk::SmallVec;
 use rltk::smallvec;
 use specs::World;
+use specs::Entity;
 use std::cmp::max;
 use std::cmp::min;
 
@@ -29,6 +30,7 @@ pub struct Map {
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
     pub blocked: Vec<bool>,
+    pub tile_content: Vec<Vec<Entity>>,
 }
 
 impl Map {
@@ -40,7 +42,8 @@ impl Map {
             rooms: Vec::new(),
             revealed_tiles: vec![false; width * height],
             visible_tiles: vec![false; width * height],
-            blocked: vec![false; width * height]
+            blocked: vec![false; width * height],
+            tile_content: vec![Vec::new(); width * height],
         }
     }
 
@@ -87,6 +90,10 @@ impl Map {
             self.blocked[i] = tile == &TileType::Wall;
         }
     }
+
+    pub fn clear_content_index(&mut self) {
+        self.tile_content.iter_mut().for_each(|t| t.clear());
+    }
 }
 
 impl BaseMap for Map {
@@ -99,11 +106,13 @@ impl BaseMap for Map {
         let (x, y) = self.idx_xy(idx);
         let w = self.width;
 
+        // cardinal
         if self.is_exit_valid(x - 1, y) { exits.push((idx - 1, 1.0)) };
         if self.is_exit_valid(x + 1, y) { exits.push((idx + 1, 1.0)) };
         if self.is_exit_valid(x, y - 1) { exits.push((idx - w, 1.0)) };
         if self.is_exit_valid(x, y + 1) { exits.push((idx + w, 1.0)) };
 
+        // diagonal
         if self.is_exit_valid(x - 1, y - 1) { exits.push((idx - w - 1, 1.45)) };
         if self.is_exit_valid(x + 1, y - 1) { exits.push((idx - w + 1, 1.45)) };
         if self.is_exit_valid(x - 1, y + 1) { exits.push((idx + w - 1, 1.45)) };

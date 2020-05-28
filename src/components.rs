@@ -35,3 +35,11 @@ pub struct Name { pub name: String, }
 
 #[derive(Component)]
 pub struct BlocksTile {}
+
+#[derive(Component)]
+pub struct CombatStats {
+    pub max_hp: u32,
+    pub hp: i32,
+    pub defense: u32,
+    pub power: u32
+}
