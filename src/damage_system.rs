@@ -1,5 +1,6 @@
 use specs::prelude::*;
 use specs::World;
+use rltk::console;
 
 use crate::components::*;
 
@@ -28,10 +29,17 @@ pub fn delete_the_dead(ecs: &mut World) {
 
     {
         let combat_stats = ecs.write_storage::<CombatStats>();
+        let player_entity = ecs.fetch::<Entity>();
         let entities = ecs.entities();
         (&combat_stats, &entities).join()
             .for_each(|(stats, entity)| {
-                if stats.hp <= 0 { dead.push(entity); };
+                if stats.hp <= 0 {
+                    if entity == *player_entity {
+                        console::log("omae wa mou shinde iru.")
+                    } else {
+                        dead.push(entity);
+                    }
+                }
             });
     }
 

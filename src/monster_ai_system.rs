@@ -1,33 +1,34 @@
-use rltk::console;
 use rltk::Point;
 use specs::prelude::*;
 
 use crate::components::Monster;
 use crate::components::Viewshed;
-use crate::components::Name;
 use crate::components::Position;
+use crate::components::WantsToMelee;
 use crate::map::Map;
 
 pub struct MonsterAISystem {}
 
 impl<'a> System<'a> for MonsterAISystem {
     type SystemData = (
+        Entities<'a>,
         ReadExpect<'a, Map>,
         ReadExpect<'a, Point>,
+        ReadExpect<'a, Entity>,
         ReadStorage<'a, Monster>,
-        ReadStorage<'a, Name>,
         WriteStorage<'a, Viewshed>,
         WriteStorage<'a, Position>,
+        WriteStorage<'a, WantsToMelee>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (map, player_pos, monsters, names, mut viewsheds, mut positions) = data;
+        let (entities, map, player_pos, player_entity, monsters, mut viewsheds, mut positions, mut wants_to_melees) = data;
 
-        for (mut viewshed, _monster, name, mut pos) in (&mut viewsheds, &monsters, &names, &mut positions).join() {
+        for (entity, mut viewshed, _monster, mut pos) in (&entities, &mut viewsheds, &monsters, &mut positions).join() {
             let distance = rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
 
             if distance < 1.5 {
-                console::log(format!("{} manda vc para aquele lugar.", name.name));
+                wants_to_melees.insert(entity, WantsToMelee { target: *player_entity }).expect("não consegui criar a vontade de matar!");
             } else if viewshed.visible_tiles.contains(&*player_pos) {
                 let path = rltk::a_star_search(
                     map.xy_idx(pos.x as usize, pos.y as usize),

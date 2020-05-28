@@ -110,7 +110,7 @@ fn main() -> rltk::BError {
 
     let (x, y) = map.rooms[0].center();
 
-    gs.ecs
+    let player = gs.ecs
         .create_entity()
         .with(Position {
             x: x as i32,
@@ -136,6 +136,7 @@ fn main() -> rltk::BError {
             power: 5,
         })
         .build();
+    gs.ecs.insert(player);
 
     let mut rng = rltk::RandomNumberGenerator::new();
 
