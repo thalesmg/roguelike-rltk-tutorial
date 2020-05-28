@@ -1,6 +1,7 @@
 use rltk::Point;
 use specs::prelude::*;
 
+use crate::RunState;
 use crate::components::Monster;
 use crate::components::Position;
 use crate::components::Viewshed;
@@ -15,6 +16,7 @@ impl<'a> System<'a> for MonsterAISystem {
         ReadExpect<'a, Map>,
         ReadExpect<'a, Point>,
         ReadExpect<'a, Entity>,
+        ReadExpect<'a, RunState>,
         ReadStorage<'a, Monster>,
         WriteStorage<'a, Viewshed>,
         WriteStorage<'a, Position>,
@@ -27,18 +29,23 @@ impl<'a> System<'a> for MonsterAISystem {
             map,
             player_pos,
             player_entity,
+            runstate,
             monsters,
             mut viewsheds,
             mut positions,
             mut wants_to_melees,
         ) = data;
 
+        dbg!(*runstate);
+        if *runstate != RunState::MonsterTurn { return; };
+        dbg!("vou rodar");
+
         for (entity, mut viewshed, _monster, mut pos) in
             (&entities, &mut viewsheds, &monsters, &mut positions).join()
         {
             let distance =
                 rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
-
+            dbg!(&distance);
             if distance < 1.5 {
                 wants_to_melees
                     .insert(
@@ -54,6 +61,7 @@ impl<'a> System<'a> for MonsterAISystem {
                     map.xy_idx(player_pos.x as usize, player_pos.y as usize),
                     &*map,
                 );
+                dbg!(&path.success);
                 if path.success && path.steps.len() > 1 {
                     let (step_x, step_y) = map.idx_xy(path.steps[1]);
                     pos.x = step_x as i32;

@@ -32,15 +32,16 @@ use crate::visibility_system::VisibilitySystem;
 
 rltk::add_wasm_support!();
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum RunState {
-    Paused,
-    Running,
+    AwaitingInput,
+    PreRun,
+    PlayerTurn,
+    MonsterTurn,
 }
 
 pub struct State {
     pub ecs: World,
-    pub runstate: RunState,
 }
 
 impl State {
@@ -63,14 +64,29 @@ impl GameState for State {
     fn tick(&mut self, ctx: &mut Rltk) {
         ctx.cls();
 
-        match self.runstate {
-            RunState::Paused => self.runstate = player_input(self, ctx),
-            RunState::Running => {
+        let mut newrunstate = *self.ecs.fetch::<RunState>();
+
+        newrunstate = match newrunstate {
+            RunState::PreRun => {
                 self.run_systems();
-                damage_system::delete_the_dead(&mut self.ecs);
-                self.runstate = RunState::Paused;
-            }
-        }
+                RunState::AwaitingInput
+            },
+            RunState::AwaitingInput => {
+                player_input(self, ctx)
+            },
+            RunState::PlayerTurn => {
+                self.run_systems();
+                RunState::MonsterTurn
+            },
+            RunState::MonsterTurn => {
+                self.run_systems();
+                RunState::AwaitingInput
+            },
+        };
+
+        *self.ecs.write_resource() = newrunstate;
+
+        damage_system::delete_the_dead(&mut self.ecs);
 
         draw_map(&self.ecs, ctx);
 
@@ -92,8 +108,8 @@ fn main() -> rltk::BError {
         .build()?;
     let mut gs = State {
         ecs: World::new(),
-        runstate: RunState::Running,
     };
+    gs.ecs.insert(RunState::PreRun);
 
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
