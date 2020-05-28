@@ -12,6 +12,7 @@ mod player;
 mod visibility_system;
 mod map_indexing_system;
 mod melee_combat_system;
+mod damage_system;
 
 use rltk::GameState;
 use rltk::Rltk;
@@ -26,6 +27,8 @@ use crate::monster_ai_system::MonsterAISystem;
 use crate::player::*;
 use crate::visibility_system::VisibilitySystem;
 use crate::map_indexing_system::MapIndexingSystem;
+use crate::melee_combat_system::MeleeCombatSystem;
+use crate::damage_system::DamageSystem;
 
 rltk::add_wasm_support!();
 
@@ -48,6 +51,10 @@ impl State {
         monster_ai_system.run_now(&self.ecs);
         let mut map_indexing_system = MapIndexingSystem {};
         map_indexing_system.run_now(&self.ecs);
+        let mut melee_combat_system = MeleeCombatSystem {};
+        melee_combat_system.run_now(&self.ecs);
+        let mut damage_system = DamageSystem {};
+        damage_system.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -60,6 +67,7 @@ impl GameState for State {
             RunState::Paused => self.runstate = player_input(self, ctx),
             RunState::Running => {
                 self.run_systems();
+                damage_system::delete_the_dead(&mut self.ecs);
                 self.runstate = RunState::Paused;
             }
         }
