@@ -1,7 +1,6 @@
 use rltk::Rltk;
 use rltk::VirtualKeyCode;
 use rltk::Point;
-use rltk::console;
 use specs::prelude::*;
 use std::cmp::max;
 use std::cmp::min;
@@ -14,17 +13,19 @@ use crate::State;
 pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut positions = ecs.write_storage::<Position>();
     let mut viewsheds = ecs.write_storage::<Viewshed>();
+    let mut wants_to_melee = ecs.write_storage::<WantsToMelee>();
     let mut players = ecs.write_storage::<Player>();
     let mut ppos = ecs.write_resource::<Point>();
     let combat_stats = ecs.read_storage::<CombatStats>();
+    let entities = ecs.entities();
     let map = ecs.fetch::<Map>();
 
-    for (pos, _player, viewshed) in (&mut positions, &mut players, &mut viewsheds).join() {
+    for (pos, _player, viewshed, entity) in (&mut positions, &mut players, &mut viewsheds, &entities).join() {
         let dest_idx = xy_idx(pos.x + delta_x, pos.y + delta_y);
 
         for potential_target in map.tile_content[dest_idx].iter() {
             if let Some(_) = combat_stats.get(*potential_target) {
-                console::log(&format!("Toma!!"));
+                wants_to_melee.insert(entity, WantsToMelee { target: *potential_target }).expect("não consegui inserir a vontade de tretar!");
                 return;
             }
         }

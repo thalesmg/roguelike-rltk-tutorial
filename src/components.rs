@@ -43,3 +43,24 @@ pub struct CombatStats {
     pub defense: u32,
     pub power: u32
 }
+
+#[derive(Component)]
+pub struct WantsToMelee {
+    pub target: Entity,
+}
+
+#[derive(Component)]
+pub struct SufferDamage {
+    pub amount: Vec<u32>,
+}
+
+impl SufferDamage {
+    pub fn new_damage(store: &mut WriteStorage<SufferDamage>, victim: Entity, amount: u32) {
+        if let Some(suffering) = store.get_mut(victim) {
+            suffering.amount.push(amount);
+        } else {
+            let dmg = Self { amount: vec![amount] };
+            store.insert(victim, dmg).expect("não deu para inserir dano!");
+        }
+    }
+}

@@ -11,6 +11,7 @@ mod monster_ai_system;
 mod player;
 mod visibility_system;
 mod map_indexing_system;
+mod melee_combat_system;
 
 use rltk::GameState;
 use rltk::Rltk;
@@ -94,6 +95,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
     gs.ecs.register::<CombatStats>();
+    gs.ecs.register::<WantsToMelee>();
+    gs.ecs.register::<SufferDamage>();
 
     let map = new_map();
 
