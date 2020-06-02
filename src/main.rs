@@ -147,7 +147,6 @@ fn main() -> rltk::BError {
         .with(Name {
             name: "Player".to_string(),
         })
-        .with(BlocksTile {})
         .with(CombatStats {
             max_hp: 30,
             hp: 30,

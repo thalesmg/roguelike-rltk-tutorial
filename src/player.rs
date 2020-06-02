@@ -23,7 +23,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     for (pos, _player, viewshed, entity) in
         (&mut positions, &mut players, &mut viewsheds, &entities).join()
     {
-        let dest_idx = xy_idx(pos.x + delta_x, pos.y + delta_y);
+        let dest_idx = map.xy_idx((pos.x + delta_x) as usize, (pos.y + delta_y) as usize);
 
         for potential_target in map.tile_content[dest_idx].iter() {
             if let Some(_) = combat_stats.get(*potential_target) {
