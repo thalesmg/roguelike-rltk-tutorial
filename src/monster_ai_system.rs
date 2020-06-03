@@ -1,12 +1,12 @@
 use rltk::Point;
 use specs::prelude::*;
 
-use crate::RunState;
 use crate::components::Monster;
 use crate::components::Position;
 use crate::components::Viewshed;
 use crate::components::WantsToMelee;
 use crate::map::Map;
+use crate::RunState;
 
 pub struct MonsterAISystem {}
 
@@ -36,7 +36,9 @@ impl<'a> System<'a> for MonsterAISystem {
             mut wants_to_melees,
         ) = data;
 
-        if *runstate != RunState::MonsterTurn { return; };
+        if *runstate != RunState::MonsterTurn {
+            return;
+        };
 
         for (entity, mut viewshed, _monster, mut pos) in
             (&entities, &mut viewsheds, &monsters, &mut positions).join()

@@ -7,6 +7,7 @@ extern crate quickcheck_macros;
 
 mod components;
 mod damage_system;
+mod gui;
 mod map;
 mod map_indexing_system;
 mod melee_combat_system;
@@ -23,6 +24,7 @@ use specs::prelude::*;
 
 use crate::components::*;
 use crate::damage_system::DamageSystem;
+use crate::gui::draw_ui;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
 use crate::melee_combat_system::MeleeCombatSystem;
@@ -70,18 +72,16 @@ impl GameState for State {
             RunState::PreRun => {
                 self.run_systems();
                 RunState::AwaitingInput
-            },
-            RunState::AwaitingInput => {
-                player_input(self, ctx)
-            },
+            }
+            RunState::AwaitingInput => player_input(self, ctx),
             RunState::PlayerTurn => {
                 self.run_systems();
                 RunState::MonsterTurn
-            },
+            }
             RunState::MonsterTurn => {
                 self.run_systems();
                 RunState::AwaitingInput
-            },
+            }
         };
 
         *self.ecs.write_resource() = newrunstate;
@@ -89,6 +89,7 @@ impl GameState for State {
         damage_system::delete_the_dead(&mut self.ecs);
 
         draw_map(&self.ecs, ctx);
+        draw_ui(&self.ecs, ctx);
 
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
@@ -106,9 +107,7 @@ fn main() -> rltk::BError {
     let context = RltkBuilder::simple80x50()
         .with_title("Olá mundo!")
         .build()?;
-    let mut gs = State {
-        ecs: World::new(),
-    };
+    let mut gs = State { ecs: World::new() };
     gs.ecs.insert(RunState::PreRun);
 
     gs.ecs.register::<Position>();

@@ -11,7 +11,7 @@ use std::cmp::max;
 use std::cmp::min;
 
 pub const WIDTH: usize = 80;
-pub const HEIGHT: usize = 50;
+pub const HEIGHT: usize = 43;
 pub const MAX_ROOMS: usize = 30;
 pub const MIN_ROOM_SIZE: usize = 6;
 pub const MAX_ROOM_SIZE: usize = 10;
