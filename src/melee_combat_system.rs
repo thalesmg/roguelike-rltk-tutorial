@@ -1,15 +1,16 @@
 use std::cmp::max;
 
-use rltk::console;
 use specs::prelude::*;
 
 use crate::components::*;
+use crate::game_log::GameLog;
 
 pub struct MeleeCombatSystem {}
 
 impl<'a> System<'a> for MeleeCombatSystem {
     type SystemData = (
         Entities<'a>,
+        WriteExpect<'a, GameLog>,
         WriteStorage<'a, WantsToMelee>,
         ReadStorage<'a, Name>,
         WriteStorage<'a, SufferDamage>,
@@ -17,7 +18,7 @@ impl<'a> System<'a> for MeleeCombatSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, mut wants_to_melees, names, mut suffer_damages, combat_stats) = data;
+        let (entities, mut game_log, mut wants_to_melees, names, mut suffer_damages, combat_stats) = data;
 
         for (_entity, wants_to_melee, name, stats) in
             (&entities, &wants_to_melees, &names, &combat_stats).join()
@@ -29,7 +30,7 @@ impl<'a> System<'a> for MeleeCombatSystem {
                     let damage = max(0, stats.power - target_stats.defense);
 
                     if damage == 0 {
-                        console::log(format!(
+                        game_log.entries.push(format!(
                             "{} não faz nem um arranhão em {}...",
                             name.name, target_name.name
                         ));
@@ -39,7 +40,7 @@ impl<'a> System<'a> for MeleeCombatSystem {
                             wants_to_melee.target,
                             damage,
                         );
-                        console::log(format!(
+                        game_log.entries.push(format!(
                             "{} sabuga {} causando {} de dano!",
                             name.name, target_name.name, damage
                         ));
