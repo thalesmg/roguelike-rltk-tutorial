@@ -3,6 +3,7 @@ use rltk::RGB;
 use specs::prelude::*;
 
 use crate::components::*;
+use crate::game_log::GameLog;
 use crate::map::Map;
 
 pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
@@ -40,5 +41,13 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
             RGB::named(rltk::RED),
             RGB::named(rltk::BLACK),
         );
+    }
+
+    let game_log = ecs.fetch::<GameLog>();
+    for (i, entry) in game_log.entries.iter().rev().enumerate() {
+        let y = 44 + i;
+        if y < 49 {
+            ctx.print(2, y, entry);
+        }
     }
 }

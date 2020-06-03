@@ -7,6 +7,7 @@ extern crate quickcheck_macros;
 
 mod components;
 mod damage_system;
+mod game_log;
 mod gui;
 mod map;
 mod map_indexing_system;
@@ -24,6 +25,7 @@ use specs::prelude::*;
 
 use crate::components::*;
 use crate::damage_system::DamageSystem;
+use crate::game_log::GameLog;
 use crate::gui::draw_ui;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
@@ -197,6 +199,9 @@ fn main() -> rltk::BError {
 
     gs.ecs.insert(map);
     gs.ecs.insert(Point::new(x, y));
+    gs.ecs.insert(GameLog {
+        entries: vec!["Bem-vindo, mortal!".to_string()],
+    });
 
     rltk::main_loop(context, gs)?;
 
