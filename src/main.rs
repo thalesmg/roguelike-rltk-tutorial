@@ -105,10 +105,14 @@ impl GameState for State {
                 RunState::AwaitingInput
             },
             RunState::ShowInventory => {
-                if gui::show_inventory(self, ctx) == gui::ItemMenuResult::Cancel {
-                    RunState::AwaitingInput
-                } else {
-                    RunState::ShowInventory
+                match gui::show_inventory(self, ctx) {
+                    gui::ItemMenuResult::Cancel => RunState::AwaitingInput,
+                    gui::ItemMenuResult::NoResponse => RunState::ShowInventory,
+                    gui::ItemMenuResult::Selected((_item_entity, item_name)) => {
+                        let mut game_log = self.ecs.fetch_mut::<GameLog>();
+                        game_log.entries.push(format!("Tentastes usar {}, mas tá feia a coisa!", item_name));
+                        RunState::AwaitingInput
+                    }
                 }
             }
         };

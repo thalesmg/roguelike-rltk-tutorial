@@ -30,7 +30,7 @@ pub struct Viewshed {
 #[derive(Component)]
 pub struct Monster {}
 
-#[derive(Component)]
+#[derive(Component, PartialEq, Clone)]
 pub struct Name {
     pub name: String,
 }

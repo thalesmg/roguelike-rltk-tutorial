@@ -13,7 +13,7 @@ use crate::map::Map;
 pub enum ItemMenuResult {
     Cancel,
     NoResponse,
-    Selected,
+    Selected((Entity, String)),
 }
 
 pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
@@ -113,12 +113,13 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk) {
 }
 
 pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
+    let entities = gs.ecs.entities();
     let player_entity = gs.ecs.fetch::<Entity>();
     let names = gs.ecs.read_storage::<Name>();
     let in_backpacks = gs.ecs.read_storage::<InBackpack>();
 
-    let inventory = (&names, &in_backpacks).join()
-        .filter(|(name, backpack)| backpack.owner == *player_entity);
+    let inventory = (&entities, &names, &in_backpacks).join()
+        .filter(|(_entity, _name, backpack)| backpack.owner == *player_entity);
     let count = inventory.clone().count();
 
     let mut y = (25 - (count / 2)) as i32;
@@ -126,7 +127,8 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
     ctx.print_color(18, y - 2, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Inventário");
     ctx.print_color(18, y + count as i32 + 1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESCAPE para cancelar");
 
-    for (j, (name, _backpack)) in inventory.enumerate() {
+    let mut equipabble: Vec<(Entity, &str)> = Vec::new();
+    for (j, (entity, name, _backpack)) in inventory.enumerate() {
         ctx.set(17, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
         // letter keys
         let letter_a = 'a' as u16;
@@ -134,15 +136,25 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
         ctx.set(19, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
 
         ctx.print(21, y, &name.name.to_string());
+
+        equipabble.push((entity, &name.name));
+
         y += 1;
     }
 
     match ctx.key {
         None => ItemMenuResult::NoResponse,
         Some(key) => {
-            match key {
-                VirtualKeyCode::Escape => ItemMenuResult::Cancel,
-                _ => ItemMenuResult::NoResponse,
+            if key == VirtualKeyCode::Escape {
+                ItemMenuResult::Cancel
+            } else {
+                let selection = rltk::letter_to_option(key);
+                if -1 < selection && selection < count as i32 {
+                    let (item_entity, name_str) = equipabble[selection as usize];
+                    ItemMenuResult::Selected((item_entity, name_str.to_string()))
+                } else {
+                    ItemMenuResult::NoResponse
+                }
             }
         }
     }
