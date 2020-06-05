@@ -15,10 +15,8 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut viewsheds = ecs.write_storage::<Viewshed>();
     let mut wants_to_melee = ecs.write_storage::<WantsToMelee>();
     let mut players = ecs.write_storage::<Player>();
-    let mut wants_to_pickup_items = ecs.write_storage::<WantsToPickupItem>();
     let mut ppos = ecs.write_resource::<Point>();
     let combat_stats = ecs.read_storage::<CombatStats>();
-    let items = ecs.read_storage::<Item>();
     let entities = ecs.entities();
     let map = ecs.fetch::<Map>();
 
@@ -38,18 +36,6 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
                     )
                     .expect("não consegui inserir a vontade de tretar!");
                 return;
-            }
-
-            if let Some(_) = items.get(*potential_target) {
-                wants_to_pickup_items
-                    .insert(
-                        entity,
-                        WantsToPickupItem {
-                            collected_by: entity,
-                            item: *potential_target,
-                        }
-                    )
-                    .expect("não consegui inserir a vontade de pegar algo!");
             }
         }
 
@@ -83,8 +69,33 @@ pub fn player_input(gs: &mut State, ctx: &Rltk) -> RunState {
 
             VirtualKeyCode::B => try_move_player(-1, 1, &mut gs.ecs),
 
+            VirtualKeyCode::G => get_item(&mut gs.ecs),
+
             _ => return RunState::AwaitingInput,
         },
     }
     RunState::PlayerTurn
+}
+
+fn get_item(ecs: &mut World) {
+    let player_pos = ecs.fetch::<Point>();
+    let player_entity = ecs.fetch::<Entity>();
+    let items = ecs.read_storage::<Item>();
+    let mut wants_to_pickup_items = ecs.write_storage::<WantsToPickupItem>();
+    let map = ecs.fetch::<Map>();
+    let idx = map.xy_idx(player_pos.x as usize, player_pos.y as usize);
+
+    for potential_item in map.tile_content[idx].iter() {
+        if let Some(_) = items.get(*potential_item) {
+            wants_to_pickup_items
+                .insert(
+                    *player_entity,
+                    WantsToPickupItem {
+                        collected_by: *player_entity,
+                        item: *potential_item,
+                    }
+                )
+                .expect("não consegui inserir a vontade de pegar algo!");
+        }
+    }
 }
