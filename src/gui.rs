@@ -128,7 +128,9 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
 
     for (j, (name, _backpack)) in inventory.enumerate() {
         ctx.set(17, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
-        ctx.set(18, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), 97 + j as rltk::FontCharType);
+        // letter keys
+        let letter_a = 'a' as u16;
+        ctx.set(18, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), letter_a + j as rltk::FontCharType);
         ctx.set(19, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
 
         ctx.print(21, y, &name.name.to_string());
