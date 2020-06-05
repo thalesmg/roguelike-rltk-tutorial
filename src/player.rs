@@ -15,8 +15,10 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut viewsheds = ecs.write_storage::<Viewshed>();
     let mut wants_to_melee = ecs.write_storage::<WantsToMelee>();
     let mut players = ecs.write_storage::<Player>();
+    let mut wants_to_pickup_items = ecs.write_storage::<WantsToPickupItem>();
     let mut ppos = ecs.write_resource::<Point>();
     let combat_stats = ecs.read_storage::<CombatStats>();
+    let items = ecs.read_storage::<Item>();
     let entities = ecs.entities();
     let map = ecs.fetch::<Map>();
 
@@ -36,6 +38,18 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
                     )
                     .expect("não consegui inserir a vontade de tretar!");
                 return;
+            }
+
+            if let Some(_) = items.get(*potential_target) {
+                wants_to_pickup_items
+                    .insert(
+                        entity,
+                        WantsToPickupItem {
+                            collected_by: entity,
+                            item: *potential_target,
+                        }
+                    )
+                    .expect("não consegui inserir a vontade de pegar algo!");
             }
         }
 

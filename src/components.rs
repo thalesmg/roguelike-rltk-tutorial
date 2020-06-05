@@ -70,3 +70,22 @@ impl SufferDamage {
         }
     }
 }
+
+#[derive(Component)]
+pub struct Item {}
+
+#[derive(Component)]
+pub struct HealthPotion {
+    pub heal_amount: usize,
+}
+
+#[derive(Component)]
+pub struct InBackpack {
+    pub owner: Entity,
+}
+
+#[derive(Component)]
+pub struct WantsToPickupItem {
+    pub collected_by: Entity,
+    pub item: Entity,
+}
