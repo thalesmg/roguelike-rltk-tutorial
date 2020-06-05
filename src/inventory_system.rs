@@ -16,11 +16,25 @@ impl<'a> System<'a> for ItemCollectionSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (player_entity, mut game_log, names, mut wants_to_pickup_items, mut positions, mut in_backpacks) = data;
+        let (
+            player_entity,
+            mut game_log,
+            names,
+            mut wants_to_pickup_items,
+            mut positions,
+            mut in_backpacks,
+        ) = data;
 
         for pickup in (&wants_to_pickup_items).join() {
             positions.remove(pickup.item);
-            in_backpacks.insert(pickup.item, InBackpack{ owner: pickup.collected_by }).expect("não consegui colocar na bolsa!");
+            in_backpacks
+                .insert(
+                    pickup.item,
+                    InBackpack {
+                        owner: pickup.collected_by,
+                    },
+                )
+                .expect("não consegui colocar na bolsa!");
 
             if pickup.collected_by == *player_entity {
                 let name = &names.get(pickup.item).unwrap().name;

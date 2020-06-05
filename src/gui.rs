@@ -1,13 +1,13 @@
 use rltk::Point;
 use rltk::Rltk;
-use rltk::RGB;
 use rltk::VirtualKeyCode;
+use rltk::RGB;
 use specs::prelude::*;
 
-use crate::State;
 use crate::components::*;
 use crate::game_log::GameLog;
 use crate::map::Map;
+use crate::State;
 
 #[derive(PartialEq)]
 pub enum ItemMenuResult {
@@ -70,7 +70,9 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
 fn draw_tooltips(ecs: &World, ctx: &mut Rltk) {
     let map = ecs.fetch::<Map>();
     let mouse_pos = ctx.mouse_pos();
-    if mouse_pos.0 >= map.width as i32 || mouse_pos.1 >= map.height as i32 { return; }
+    if mouse_pos.0 >= map.width as i32 || mouse_pos.1 >= map.height as i32 {
+        return;
+    }
 
     let mut tooltips = Vec::new();
     let names = ecs.read_storage::<Name>();
@@ -89,24 +91,60 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk) {
             let left_x = mouse_pos.0 - width as i32;
             let y = mouse_pos.1;
             for (i, tooltip) in tooltips.iter().enumerate() {
-                ctx.print_color(left_x, y + i as i32, RGB::named(rltk::WHITE), RGB::named(rltk::GREY), tooltip);
+                ctx.print_color(
+                    left_x,
+                    y + i as i32,
+                    RGB::named(rltk::WHITE),
+                    RGB::named(rltk::GREY),
+                    tooltip,
+                );
                 let padding = width - tooltip.len() - 1;
                 for j in 0..padding {
-                    ctx.print_color(arrow_pos.x - j as i32, y + i as i32, RGB::named(rltk::WHITE), RGB::named(rltk::GREY), " ".to_string());
+                    ctx.print_color(
+                        arrow_pos.x - j as i32,
+                        y + i as i32,
+                        RGB::named(rltk::WHITE),
+                        RGB::named(rltk::GREY),
+                        " ".to_string(),
+                    );
                 }
-                ctx.print_color(arrow_pos.x, arrow_pos.y, RGB::named(rltk::WHITE), RGB::named(rltk::GREY), "->".to_string());
+                ctx.print_color(
+                    arrow_pos.x,
+                    arrow_pos.y,
+                    RGB::named(rltk::WHITE),
+                    RGB::named(rltk::GREY),
+                    "->".to_string(),
+                );
             }
         } else {
             let arrow_pos = Point::new(mouse_pos.0 + 1, mouse_pos.1);
             let left_x = mouse_pos.0 + 4 as i32;
             let y = mouse_pos.1;
             for (i, tooltip) in tooltips.iter().enumerate() {
-                ctx.print_color(left_x, y + i as i32, RGB::named(rltk::WHITE), RGB::named(rltk::GREY), tooltip);
+                ctx.print_color(
+                    left_x,
+                    y + i as i32,
+                    RGB::named(rltk::WHITE),
+                    RGB::named(rltk::GREY),
+                    tooltip,
+                );
                 let padding = width - tooltip.len() - 1;
                 for j in 0..padding {
-                    ctx.print_color(arrow_pos.x + 1 + j as i32, y + i as i32, RGB::named(rltk::WHITE), RGB::named(rltk::GREY), " ".to_string());
+                    ctx.print_color(
+                        arrow_pos.x + 1 + j as i32,
+                        y + i as i32,
+                        RGB::named(rltk::WHITE),
+                        RGB::named(rltk::GREY),
+                        " ".to_string(),
+                    );
                 }
-                ctx.print_color(arrow_pos.x, arrow_pos.y, RGB::named(rltk::WHITE), RGB::named(rltk::GREY), "<-".to_string());
+                ctx.print_color(
+                    arrow_pos.x,
+                    arrow_pos.y,
+                    RGB::named(rltk::WHITE),
+                    RGB::named(rltk::GREY),
+                    "<-".to_string(),
+                );
             }
         }
     }
@@ -118,22 +156,60 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
     let names = gs.ecs.read_storage::<Name>();
     let in_backpacks = gs.ecs.read_storage::<InBackpack>();
 
-    let inventory = (&entities, &names, &in_backpacks).join()
+    let inventory = (&entities, &names, &in_backpacks)
+        .join()
         .filter(|(_entity, _name, backpack)| backpack.owner == *player_entity);
     let count = inventory.clone().count();
 
     let mut y = (25 - (count / 2)) as i32;
-    ctx.draw_box(15, y - 2, 31, (count + 3) as i32, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-    ctx.print_color(18, y - 2, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Inventário");
-    ctx.print_color(18, y + count as i32 + 1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESCAPE para cancelar");
+    ctx.draw_box(
+        15,
+        y - 2,
+        31,
+        (count + 3) as i32,
+        RGB::named(rltk::WHITE),
+        RGB::named(rltk::BLACK),
+    );
+    ctx.print_color(
+        18,
+        y - 2,
+        RGB::named(rltk::YELLOW),
+        RGB::named(rltk::BLACK),
+        "Inventário",
+    );
+    ctx.print_color(
+        18,
+        y + count as i32 + 1,
+        RGB::named(rltk::YELLOW),
+        RGB::named(rltk::BLACK),
+        "ESCAPE para cancelar",
+    );
 
     let mut equipabble: Vec<(Entity, &str)> = Vec::new();
     for (j, (entity, name, _backpack)) in inventory.enumerate() {
-        ctx.set(17, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
+        ctx.set(
+            17,
+            y,
+            RGB::named(rltk::WHITE),
+            RGB::named(rltk::BLACK),
+            rltk::to_cp437('('),
+        );
         // letter keys
         let letter_a = 'a' as u16;
-        ctx.set(18, y, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), letter_a + j as rltk::FontCharType);
-        ctx.set(19, y, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
+        ctx.set(
+            18,
+            y,
+            RGB::named(rltk::YELLOW),
+            RGB::named(rltk::BLACK),
+            letter_a + j as rltk::FontCharType,
+        );
+        ctx.set(
+            19,
+            y,
+            RGB::named(rltk::WHITE),
+            RGB::named(rltk::BLACK),
+            rltk::to_cp437(')'),
+        );
 
         ctx.print(21, y, &name.name.to_string());
 

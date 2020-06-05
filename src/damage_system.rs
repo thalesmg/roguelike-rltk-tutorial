@@ -40,7 +40,9 @@ pub fn delete_the_dead(ecs: &mut World) {
             .for_each(|(stats, entity)| {
                 if stats.hp <= 0 {
                     if entity == *player_entity {
-                        game_logs.entries.push("omae wa mou shinde iru.".to_string());
+                        game_logs
+                            .entries
+                            .push("omae wa mou shinde iru.".to_string());
                         console::log("omae wa mou shinde iru.")
                     } else {
                         if let Some(n) = names.get(entity) {

@@ -9,14 +9,14 @@ mod components;
 mod damage_system;
 mod game_log;
 mod gui;
+mod inventory_system;
 mod map;
 mod map_indexing_system;
 mod melee_combat_system;
 mod monster_ai_system;
 mod player;
-mod visibility_system;
 mod spawner;
-mod inventory_system;
+mod visibility_system;
 
 use rltk::GameState;
 use rltk::Point;
@@ -28,13 +28,13 @@ use crate::components::*;
 use crate::damage_system::DamageSystem;
 use crate::game_log::GameLog;
 use crate::gui::draw_ui;
+use crate::inventory_system::ItemCollectionSystem;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
 use crate::melee_combat_system::MeleeCombatSystem;
 use crate::monster_ai_system::MonsterAISystem;
 use crate::player::*;
 use crate::visibility_system::VisibilitySystem;
-use crate::inventory_system::ItemCollectionSystem;
 
 rltk::add_wasm_support!();
 
@@ -103,18 +103,19 @@ impl GameState for State {
             RunState::MonsterTurn => {
                 self.run_systems();
                 RunState::AwaitingInput
-            },
-            RunState::ShowInventory => {
-                match gui::show_inventory(self, ctx) {
-                    gui::ItemMenuResult::Cancel => RunState::AwaitingInput,
-                    gui::ItemMenuResult::NoResponse => RunState::ShowInventory,
-                    gui::ItemMenuResult::Selected((_item_entity, item_name)) => {
-                        let mut game_log = self.ecs.fetch_mut::<GameLog>();
-                        game_log.entries.push(format!("Tentastes usar {}, mas tá feia a coisa!", item_name));
-                        RunState::AwaitingInput
-                    }
-                }
             }
+            RunState::ShowInventory => match gui::show_inventory(self, ctx) {
+                gui::ItemMenuResult::Cancel => RunState::AwaitingInput,
+                gui::ItemMenuResult::NoResponse => RunState::ShowInventory,
+                gui::ItemMenuResult::Selected((_item_entity, item_name)) => {
+                    let mut game_log = self.ecs.fetch_mut::<GameLog>();
+                    game_log.entries.push(format!(
+                        "Tentastes usar {}, mas tá feia a coisa!",
+                        item_name
+                    ));
+                    RunState::AwaitingInput
+                }
+            },
         };
 
         *self.ecs.write_resource() = newrunstate;

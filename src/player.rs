@@ -95,7 +95,7 @@ fn get_item(ecs: &mut World) {
                     WantsToPickupItem {
                         collected_by: *player_entity,
                         item: *potential_item,
-                    }
+                    },
                 )
                 .expect("não consegui inserir a vontade de pegar algo!");
         }

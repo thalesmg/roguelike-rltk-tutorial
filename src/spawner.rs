@@ -1,6 +1,6 @@
-use specs::prelude::*;
 use rltk::RandomNumberGenerator;
 use rltk::RGB;
+use specs::prelude::*;
 
 use crate::components::*;
 use crate::map::Rect;
@@ -9,8 +9,7 @@ const MAX_MONSTERS: usize = 4;
 const MAX_ITEMS: usize = 2;
 
 pub fn player(ecs: &mut World, x: usize, y: usize) -> Entity {
-    ecs
-        .create_entity()
+    ecs.create_entity()
         .with(Position {
             x: x as i32,
             y: y as i32,
@@ -59,9 +58,8 @@ fn orc(ecs: &mut World, x: usize, y: usize) {
     monster(ecs, x, y, rltk::to_cp437('o'), "Orc");
 }
 
-fn monster<S : ToString>(ecs: &mut World, x: usize, y: usize, glyph: rltk::FontCharType, name: S) {
-    ecs
-        .create_entity()
+fn monster<S: ToString>(ecs: &mut World, x: usize, y: usize, glyph: rltk::FontCharType, name: S) {
+    ecs.create_entity()
         .with(Position {
             x: x as i32,
             y: y as i32,
@@ -101,8 +99,10 @@ pub fn spawn_room(ecs: &mut World, room: &Rect) {
         for _ in 0..=num_monsters {
             let mut added = false;
             while !added {
-                let x = room.x1 + rng.roll_dice(1, i32::abs(room.x2 as i32 - room.x1 as i32)) as usize;
-                let y = room.y1 + rng.roll_dice(1, i32::abs(room.y2 as i32 - room.y1 as i32)) as usize;
+                let x =
+                    room.x1 + rng.roll_dice(1, i32::abs(room.x2 as i32 - room.x1 as i32)) as usize;
+                let y =
+                    room.y1 + rng.roll_dice(1, i32::abs(room.y2 as i32 - room.y1 as i32)) as usize;
                 if !monster_spawn_points.contains(&(x, y)) {
                     monster_spawn_points.push((x, y));
                     added = true;
@@ -118,8 +118,10 @@ pub fn spawn_room(ecs: &mut World, room: &Rect) {
         for _ in 0..=num_items {
             let mut added = false;
             while !added {
-                let x = room.x1 + rng.roll_dice(1, i32::abs(room.x2 as i32 - room.x1 as i32)) as usize;
-                let y = room.y1 + rng.roll_dice(1, i32::abs(room.y2 as i32 - room.y1 as i32)) as usize;
+                let x =
+                    room.x1 + rng.roll_dice(1, i32::abs(room.x2 as i32 - room.x1 as i32)) as usize;
+                let y =
+                    room.y1 + rng.roll_dice(1, i32::abs(room.y2 as i32 - room.y1 as i32)) as usize;
                 if !item_spawn_points.contains(&(x, y)) {
                     item_spawn_points.push((x, y));
                     added = true;
@@ -138,16 +140,20 @@ pub fn spawn_room(ecs: &mut World, room: &Rect) {
 }
 
 pub fn health_potion(ecs: &mut World, x: usize, y: usize) {
-    ecs
-        .create_entity()
-        .with(Position { x: x as i32, y: y as i32 })
+    ecs.create_entity()
+        .with(Position {
+            x: x as i32,
+            y: y as i32,
+        })
         .with(Renderable {
             glyph: rltk::to_cp437('¡'),
             fg: RGB::named(rltk::MAGENTA),
             bg: RGB::named(rltk::BLACK),
         })
         .with(Item {})
-        .with(Name { name: "Poção de Vida".to_string() })
+        .with(Name {
+            name: "Poção de Vida".to_string(),
+        })
         .with(HealthPotion { heal_amount: 8 })
         .build();
 }
