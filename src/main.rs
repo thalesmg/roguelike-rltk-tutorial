@@ -29,6 +29,7 @@ use crate::damage_system::DamageSystem;
 use crate::game_log::GameLog;
 use crate::gui::draw_ui;
 use crate::inventory_system::ItemCollectionSystem;
+use crate::inventory_system::PotionUseSystem;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
 use crate::melee_combat_system::MeleeCombatSystem;
@@ -65,6 +66,8 @@ impl State {
         damage_system.run_now(&self.ecs);
         let mut item_collection_system = ItemCollectionSystem {};
         item_collection_system.run_now(&self.ecs);
+        let mut potion_use_system = PotionUseSystem {};
+        potion_use_system.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -107,13 +110,19 @@ impl GameState for State {
             RunState::ShowInventory => match gui::show_inventory(self, ctx) {
                 gui::ItemMenuResult::Cancel => RunState::AwaitingInput,
                 gui::ItemMenuResult::NoResponse => RunState::ShowInventory,
-                gui::ItemMenuResult::Selected((_item_entity, item_name)) => {
-                    let mut game_log = self.ecs.fetch_mut::<GameLog>();
-                    game_log.entries.push(format!(
-                        "Tentastes usar {}, mas tá feia a coisa!",
-                        item_name
-                    ));
-                    RunState::AwaitingInput
+                gui::ItemMenuResult::Selected((item_entity, _item_name)) => {
+                    // TODO check when other items exist
+                    let mut wants_to_drink_potions = self.ecs.write_storage::<WantsToDrinkPotion>();
+                    let player_entity = self.ecs.fetch::<Entity>();
+                    wants_to_drink_potions
+                        .insert(
+                            *player_entity,
+                            WantsToDrinkPotion {
+                                potion: item_entity,
+                            },
+                        )
+                        .expect("nao consegui criar a vontade de beber!");
+                    RunState::PlayerTurn
                 }
             },
         };
@@ -147,6 +156,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<HealthPotion>();
     gs.ecs.register::<InBackpack>();
     gs.ecs.register::<WantsToPickupItem>();
+    gs.ecs.register::<WantsToDrinkPotion>();
 
     let map = new_map();
 
