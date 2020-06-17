@@ -68,6 +68,8 @@ impl State {
         item_collection_system.run_now(&self.ecs);
         let mut potion_use_system = PotionUseSystem {};
         potion_use_system.run_now(&self.ecs);
+        let mut item_drop_system = ItemDropSystem {};
+        item_drop_system.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -157,6 +159,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<InBackpack>();
     gs.ecs.register::<WantsToPickupItem>();
     gs.ecs.register::<WantsToDrinkPotion>();
+    gs.ecs.register::<WantsToDropItem>();
 
     let map = new_map();
 

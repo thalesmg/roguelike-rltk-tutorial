@@ -5,8 +5,6 @@ use crate::game_log::GameLog;
 
 pub struct ItemCollectionSystem {}
 
-pub struct PotionUseSystem {}
-
 impl<'a> System<'a> for ItemCollectionSystem {
     type SystemData = (
         ReadExpect<'a, Entity>,
@@ -48,6 +46,8 @@ impl<'a> System<'a> for ItemCollectionSystem {
     }
 }
 
+pub struct PotionUseSystem {}
+
 impl<'a> System<'a> for PotionUseSystem {
     type SystemData = (
         Entities<'a>,
@@ -88,5 +88,41 @@ impl<'a> System<'a> for PotionUseSystem {
         }
 
         wants_to_drink_potions.clear();
+    }
+}
+
+pub struct ItemDropSystem {}
+
+impl<'a> System<'a> for ItemDropSystem {
+    type SystemData = (
+        Entities<'a>,
+        ReadExpect<'a, Entity>,
+        WriteExpect<'a, GameLog>,
+        ReadStorage<'a, Name>,
+        WriteStorage<'a, WantsToDropItem>,
+        WriteStorage<'a, Position>,
+        WriteStorage<'a, InBackpack>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (entities, player_entity, mut game_log, names, mut wants_to_drop_items, mut positions, mut in_backpacks) = data;
+
+        for (entity, to_drop) in (&entities, &mut wants_to_drop_items).join() {
+            let mut dropper_pos = Position{x: 0, y: 0};
+            {
+                let pos = positions.get(entity).unwrap();
+                dropper_pos.x = pos.x;
+                dropper_pos.y = pos.y;
+            }
+            positions.insert(to_drop.item, dropper_pos).expect("o item não voltou pro mapa!");
+            in_backpacks.remove(to_drop.item);
+
+            if entity == *player_entity {
+                let item_name = names.get(to_drop.item).unwrap();
+                game_log.entries.push(format!("Você larga {} no chão.", item_name.name));
+            }
+        }
+
+        wants_to_drop_items.clear();
     }
 }

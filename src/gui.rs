@@ -235,3 +235,7 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
         }
     }
 }
+
+pub fn drop_item_menu(gs: &mut State, cts: &mut Rltk) {
+
+}
