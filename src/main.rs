@@ -29,6 +29,7 @@ use crate::damage_system::DamageSystem;
 use crate::game_log::GameLog;
 use crate::gui::draw_ui;
 use crate::inventory_system::ItemCollectionSystem;
+use crate::inventory_system::ItemDropSystem;
 use crate::inventory_system::PotionUseSystem;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
@@ -46,6 +47,7 @@ pub enum RunState {
     PlayerTurn,
     MonsterTurn,
     ShowInventory,
+    ShowDropItem,
 }
 
 pub struct State {
@@ -125,6 +127,18 @@ impl GameState for State {
                         )
                         .expect("nao consegui criar a vontade de beber!");
                     RunState::PlayerTurn
+                }
+            },
+            RunState::ShowDropItem => {
+                match gui::drop_item_menu(self, ctx) {
+                    gui::ItemMenuResult::Cancel => RunState::AwaitingInput,
+                    gui::ItemMenuResult::NoResponse => RunState::ShowDropItem,
+                    gui::ItemMenuResult::Selected((item_entity, _item_name)) => {
+                        let mut intent = self.ecs.write_storage::<WantsToDropItem>();
+                        let player_entity = self.ecs.fetch::<Entity>();
+                        intent.insert(*player_entity, WantsToDropItem { item: item_entity });
+                        RunState::PlayerTurn
+                    },
                 }
             },
         };
