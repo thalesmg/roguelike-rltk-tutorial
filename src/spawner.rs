@@ -18,6 +18,7 @@ pub fn player(ecs: &mut World, x: usize, y: usize) -> Entity {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),
             bg: RGB::named(rltk::BLACK),
+            render_order: 0,
         })
         .with(Player {})
         .with(Viewshed {
@@ -68,6 +69,7 @@ fn monster<S: ToString>(ecs: &mut World, x: usize, y: usize, glyph: rltk::FontCh
             glyph,
             fg: RGB::named(rltk::RED),
             bg: RGB::named(rltk::BLACK),
+            render_order: 1,
         })
         .with(Viewshed {
             range: 8,
@@ -149,6 +151,7 @@ pub fn health_potion(ecs: &mut World, x: usize, y: usize) {
             glyph: rltk::to_cp437('¡'),
             fg: RGB::named(rltk::MAGENTA),
             bg: RGB::named(rltk::BLACK),
+            render_order: 2,
         })
         .with(Item {})
         .with(Name {

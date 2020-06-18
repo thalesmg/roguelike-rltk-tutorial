@@ -88,7 +88,9 @@ impl GameState for State {
             let renderables = self.ecs.read_storage::<Renderable>();
             let map = self.ecs.fetch::<Map>();
 
-            for (pos, render) in (&positions, &renderables).join() {
+            let mut data = (&positions, &renderables).join().collect::<Vec<_>>();
+            data.sort_by(|(_p1, r1), (_p2, r2)| r2.render_order.cmp(&r1.render_order));
+            for (pos, render) in data.iter() {
                 if map.visible_tiles[xy_idx(pos.x, pos.y)] {
                     ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
                 }
@@ -136,7 +138,7 @@ impl GameState for State {
                     gui::ItemMenuResult::Selected((item_entity, _item_name)) => {
                         let mut intent = self.ecs.write_storage::<WantsToDropItem>();
                         let player_entity = self.ecs.fetch::<Entity>();
-                        intent.insert(*player_entity, WantsToDropItem { item: item_entity });
+                        intent.insert(*player_entity, WantsToDropItem { item: item_entity }).expect("não teve vontade de largar nada...");
                         RunState::PlayerTurn
                     },
                 }

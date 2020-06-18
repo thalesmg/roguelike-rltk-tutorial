@@ -15,6 +15,7 @@ pub struct Renderable {
     pub glyph: u16,
     pub fg: RGB,
     pub bg: RGB,
+    pub render_order: usize,
 }
 
 #[derive(Component, Debug)]
