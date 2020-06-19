@@ -242,20 +242,59 @@ pub fn drop_item_menu(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
     let backpacks = gs.ecs.read_storage::<InBackpack>();
     let entities = gs.ecs.entities();
 
-    let inventory = (&entities, &backpacks, &names).join().filter(|(_entity, backpack, _name)| backpack.owner == *player_entity);
+    let inventory = (&entities, &backpacks, &names)
+        .join()
+        .filter(|(_entity, backpack, _name)| backpack.owner == *player_entity);
     let count = inventory.clone().count() as i32;
     let y = (25 - (count / 2)) as i32;
 
-    ctx.draw_box(15, y - 2, 31, count as i32 + 3, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK));
-    ctx.print_color(18, y - 2, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "Largar o quê?");
-    ctx.print_color(18, y + count + 1, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), "ESCAPE para cancelar");
+    ctx.draw_box(
+        15,
+        y - 2,
+        31,
+        count as i32 + 3,
+        RGB::named(rltk::WHITE),
+        RGB::named(rltk::BLACK),
+    );
+    ctx.print_color(
+        18,
+        y - 2,
+        RGB::named(rltk::YELLOW),
+        RGB::named(rltk::BLACK),
+        "Largar o quê?",
+    );
+    ctx.print_color(
+        18,
+        y + count + 1,
+        RGB::named(rltk::YELLOW),
+        RGB::named(rltk::BLACK),
+        "ESCAPE para cancelar",
+    );
 
     let mut equipable = Vec::new();
     let letter_a = 'a' as u16;
     for (j, (entity, _pack, name)) in inventory.enumerate() {
-        ctx.set(17, y + j as i32, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437('('));
-        ctx.set(18, y + j as i32, RGB::named(rltk::YELLOW), RGB::named(rltk::BLACK), letter_a + j as rltk::FontCharType);
-        ctx.set(19, y + j as i32, RGB::named(rltk::WHITE), RGB::named(rltk::BLACK), rltk::to_cp437(')'));
+        ctx.set(
+            17,
+            y + j as i32,
+            RGB::named(rltk::WHITE),
+            RGB::named(rltk::BLACK),
+            rltk::to_cp437('('),
+        );
+        ctx.set(
+            18,
+            y + j as i32,
+            RGB::named(rltk::YELLOW),
+            RGB::named(rltk::BLACK),
+            letter_a + j as rltk::FontCharType,
+        );
+        ctx.set(
+            19,
+            y + j as i32,
+            RGB::named(rltk::WHITE),
+            RGB::named(rltk::BLACK),
+            rltk::to_cp437(')'),
+        );
 
         ctx.print(21, y + j as i32, &name.name.to_string());
         equipable.push((entity, &name.name));
@@ -272,6 +311,6 @@ pub fn drop_item_menu(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
             } else {
                 ItemMenuResult::NoResponse
             }
-        },
+        }
     }
 }

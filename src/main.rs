@@ -121,26 +121,21 @@ impl GameState for State {
                     let mut wants_to_use_items = self.ecs.write_storage::<WantsToUseItem>();
                     let player_entity = self.ecs.fetch::<Entity>();
                     wants_to_use_items
-                        .insert(
-                            *player_entity,
-                            WantsToUseItem {
-                                item: item_entity,
-                            },
-                        )
+                        .insert(*player_entity, WantsToUseItem { item: item_entity })
                         .expect("nao consegui criar a vontade de usar!");
                     RunState::PlayerTurn
                 }
             },
-            RunState::ShowDropItem => {
-                match gui::drop_item_menu(self, ctx) {
-                    gui::ItemMenuResult::Cancel => RunState::AwaitingInput,
-                    gui::ItemMenuResult::NoResponse => RunState::ShowDropItem,
-                    gui::ItemMenuResult::Selected((item_entity, _item_name)) => {
-                        let mut intent = self.ecs.write_storage::<WantsToDropItem>();
-                        let player_entity = self.ecs.fetch::<Entity>();
-                        intent.insert(*player_entity, WantsToDropItem { item: item_entity }).expect("não teve vontade de largar nada...");
-                        RunState::PlayerTurn
-                    },
+            RunState::ShowDropItem => match gui::drop_item_menu(self, ctx) {
+                gui::ItemMenuResult::Cancel => RunState::AwaitingInput,
+                gui::ItemMenuResult::NoResponse => RunState::ShowDropItem,
+                gui::ItemMenuResult::Selected((item_entity, _item_name)) => {
+                    let mut intent = self.ecs.write_storage::<WantsToDropItem>();
+                    let player_entity = self.ecs.fetch::<Entity>();
+                    intent
+                        .insert(*player_entity, WantsToDropItem { item: item_entity })
+                        .expect("não teve vontade de largar nada...");
+                    RunState::PlayerTurn
                 }
             },
         };

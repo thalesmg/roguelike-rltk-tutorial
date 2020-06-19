@@ -86,7 +86,9 @@ impl<'a> System<'a> for PotionUseSystem {
             }
 
             if let Some(_) = consumables.get(item_user.item) {
-                entities.delete(item_user.item).expect("não consegui consumir!");
+                entities
+                    .delete(item_user.item)
+                    .expect("não consegui consumir!");
             }
         }
 
@@ -108,21 +110,33 @@ impl<'a> System<'a> for ItemDropSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, player_entity, mut game_log, names, mut wants_to_drop_items, mut positions, mut in_backpacks) = data;
+        let (
+            entities,
+            player_entity,
+            mut game_log,
+            names,
+            mut wants_to_drop_items,
+            mut positions,
+            mut in_backpacks,
+        ) = data;
 
         for (entity, to_drop) in (&entities, &mut wants_to_drop_items).join() {
-            let mut dropper_pos = Position{x: 0, y: 0};
+            let mut dropper_pos = Position { x: 0, y: 0 };
             {
                 let pos = positions.get(entity).unwrap();
                 dropper_pos.x = pos.x;
                 dropper_pos.y = pos.y;
             }
-            positions.insert(to_drop.item, dropper_pos).expect("o item não voltou pro mapa!");
+            positions
+                .insert(to_drop.item, dropper_pos)
+                .expect("o item não voltou pro mapa!");
             in_backpacks.remove(to_drop.item);
 
             if entity == *player_entity {
                 let item_name = names.get(to_drop.item).unwrap();
-                game_log.entries.push(format!("Você larga {} no chão.", item_name.name));
+                game_log
+                    .entries
+                    .push(format!("Você larga {} no chão.", item_name.name));
             }
         }
 
