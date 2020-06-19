@@ -54,9 +54,10 @@ impl<'a> System<'a> for PotionUseSystem {
         ReadExpect<'a, Entity>,
         WriteExpect<'a, GameLog>,
         ReadStorage<'a, Name>,
-        ReadStorage<'a, HealthPotion>,
+        ReadStorage<'a, ProvidesHealing>,
+        ReadStorage<'a, Consumable>,
         WriteStorage<'a, CombatStats>,
-        WriteStorage<'a, WantsToDrinkPotion>,
+        WriteStorage<'a, WantsToUseItem>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -65,29 +66,31 @@ impl<'a> System<'a> for PotionUseSystem {
             player_entity,
             mut game_log,
             names,
-            health_potions,
+            healing_providers,
+            consumables,
             mut combat_stats,
-            mut wants_to_drink_potions,
+            mut wants_to_use_items,
         ) = data;
 
-        for (entity, drink, stats) in (&entities, &wants_to_drink_potions, &mut combat_stats).join()
+        for (entity, item_user, stats) in (&entities, &wants_to_use_items, &mut combat_stats).join()
         {
-            if let Some(potion) = health_potions.get(drink.potion) {
-                stats.hp = i32::min(stats.max_hp as i32, stats.hp + potion.heal_amount as i32);
+            if let Some(healer) = healing_providers.get(item_user.item) {
+                stats.hp = i32::min(stats.max_hp as i32, stats.hp + healer.heal_amount as i32);
                 if entity == *player_entity {
-                    let potion_name = names.get(drink.potion).unwrap();
+                    let healer_name = names.get(item_user.item).unwrap();
                     game_log.entries.push(format!(
                         "Você toma uma talagada de {}, e cura {} hp.",
-                        potion_name.name, potion.heal_amount
+                        healer_name.name, healer.heal_amount
                     ));
                 }
-                entities
-                    .delete(drink.potion)
-                    .expect("não consegui reciclar a poção!");
+            }
+
+            if let Some(_) = consumables.get(item_user.item) {
+                entities.delete(item_user.item).expect("não consegui consumir!");
             }
         }
 
-        wants_to_drink_potions.clear();
+        wants_to_use_items.clear();
     }
 }
 

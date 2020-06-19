@@ -157,6 +157,7 @@ pub fn health_potion(ecs: &mut World, x: usize, y: usize) {
         .with(Name {
             name: "Poção de Vida".to_string(),
         })
-        .with(HealthPotion { heal_amount: 8 })
+        .with(ProvidesHealing { heal_amount: 8 })
+        .with(Consumable {})
         .build();
 }

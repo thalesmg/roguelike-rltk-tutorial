@@ -118,16 +118,16 @@ impl GameState for State {
                 gui::ItemMenuResult::NoResponse => RunState::ShowInventory,
                 gui::ItemMenuResult::Selected((item_entity, _item_name)) => {
                     // TODO check when other items exist
-                    let mut wants_to_drink_potions = self.ecs.write_storage::<WantsToDrinkPotion>();
+                    let mut wants_to_use_items = self.ecs.write_storage::<WantsToUseItem>();
                     let player_entity = self.ecs.fetch::<Entity>();
-                    wants_to_drink_potions
+                    wants_to_use_items
                         .insert(
                             *player_entity,
-                            WantsToDrinkPotion {
-                                potion: item_entity,
+                            WantsToUseItem {
+                                item: item_entity,
                             },
                         )
-                        .expect("nao consegui criar a vontade de beber!");
+                        .expect("nao consegui criar a vontade de usar!");
                     RunState::PlayerTurn
                 }
             },
@@ -171,11 +171,12 @@ fn main() -> rltk::BError {
     gs.ecs.register::<WantsToMelee>();
     gs.ecs.register::<SufferDamage>();
     gs.ecs.register::<Item>();
-    gs.ecs.register::<HealthPotion>();
+    gs.ecs.register::<ProvidesHealing>();
     gs.ecs.register::<InBackpack>();
     gs.ecs.register::<WantsToPickupItem>();
-    gs.ecs.register::<WantsToDrinkPotion>();
+    gs.ecs.register::<WantsToUseItem>();
     gs.ecs.register::<WantsToDropItem>();
+    gs.ecs.register::<Consumable>();
 
     let map = new_map();
 
