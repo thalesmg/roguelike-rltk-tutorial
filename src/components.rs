@@ -103,3 +103,13 @@ pub struct WantsToDropItem {
 
 #[derive(Component)]
 pub struct Consumable {}
+
+#[derive(Component)]
+pub struct InflictsDamage {
+    pub damage: u32,
+}
+
+#[derive(Component)]
+pub struct Ranged {
+    pub range: u32,
+}

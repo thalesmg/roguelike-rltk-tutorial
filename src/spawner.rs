@@ -137,7 +137,20 @@ pub fn spawn_room(ecs: &mut World, room: &Rect) {
     }
 
     for (x, y) in item_spawn_points.iter() {
-        health_potion(ecs, *x, *y);
+        random_item(ecs, *x, *y);
+    }
+}
+
+pub fn random_item(ecs: &mut World, x: usize, y: usize) {
+    let roll = {
+        let mut rng = ecs.fetch_mut::<RandomNumberGenerator>();
+        rng.rand()
+    };
+
+    if roll {
+        health_potion(ecs, x, y);
+    } else {
+        magic_missile_scroll(ecs, x, y);
     }
 }
 
@@ -159,5 +172,27 @@ pub fn health_potion(ecs: &mut World, x: usize, y: usize) {
         })
         .with(ProvidesHealing { heal_amount: 8 })
         .with(Consumable {})
+        .build();
+}
+
+pub fn magic_missile_scroll(ecs: &mut World, x: usize, y: usize) {
+    ecs.create_entity()
+        .with(Position {
+            x: x as i32,
+            y: y as i32,
+        })
+        .with(Renderable {
+            glyph: rltk::to_cp437(')'),
+            fg: RGB::named(rltk::CYAN),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2,
+        })
+        .with(Name {
+            name: "Pergaminho de Míssil Mágico".to_string(),
+        })
+        .with(Item {})
+        .with(Consumable {})
+        .with(Ranged { range: 6 })
+        .with(InflictsDamage { damage: 8 })
         .build();
 }

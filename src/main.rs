@@ -172,6 +172,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<WantsToUseItem>();
     gs.ecs.register::<WantsToDropItem>();
     gs.ecs.register::<Consumable>();
+    gs.ecs.register::<InflictsDamage>();
+    gs.ecs.register::<Ranged>();
 
     let map = new_map();
 
