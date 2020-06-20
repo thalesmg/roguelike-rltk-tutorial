@@ -1,3 +1,4 @@
+use rltk::Point;
 use rltk::RGB;
 use specs::prelude::*;
 
@@ -94,6 +95,7 @@ pub struct WantsToPickupItem {
 #[derive(Component)]
 pub struct WantsToUseItem {
     pub item: Entity,
+    pub target: Option<Point>,
 }
 
 #[derive(Component)]

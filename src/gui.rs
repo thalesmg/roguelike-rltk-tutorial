@@ -14,6 +14,7 @@ pub enum ItemMenuResult {
     Cancel,
     NoResponse,
     Selected((Entity, String)),
+    RangeSelected(Point),
 }
 
 pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
@@ -313,4 +314,53 @@ pub fn drop_item_menu(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
             }
         }
     }
+}
+
+pub fn ranged_target(gs: &mut State, ctx: &mut Rltk, range: u32) -> ItemMenuResult {
+    let player_entity = gs.ecs.fetch::<Entity>();
+    let player_pos = gs.ecs.fetch::<Point>();
+    let viewsheds = gs.ecs.read_storage::<Viewshed>();
+
+    ctx.print_color(
+        5,
+        0,
+        RGB::named(rltk::YELLOW),
+        RGB::named(rltk::BLACK),
+        "Selecione o alvo",
+    );
+
+    // ressaltar células dentro do alcance
+    let mut available_cells = Vec::new();
+    if let Some(Viewshed { visible_tiles, .. }) = viewsheds.get(*player_entity) {
+        for tile in visible_tiles.iter() {
+            if rltk::DistanceAlg::Pythagoras.distance2d(*player_pos, *tile) <= range as f32 {
+                ctx.set_bg(tile.x, tile.y, RGB::named(rltk::BLUE));
+                available_cells.push(tile);
+            }
+        }
+    } else {
+        return ItemMenuResult::Cancel;
+    }
+
+    // desenhar cursor
+    let mouse_pos = ctx.mouse_pos();
+    let valid_target = available_cells
+        .iter()
+        .any(|tile| tile.x == mouse_pos.0 && tile.y == mouse_pos.1);
+    if valid_target {
+        ctx.set_bg(mouse_pos.0, mouse_pos.1, RGB::named(rltk::CYAN));
+        if ctx.left_click {
+            return ItemMenuResult::RangeSelected(Point {
+                x: mouse_pos.0,
+                y: mouse_pos.1,
+            });
+        }
+    } else {
+        ctx.set_bg(mouse_pos.0, mouse_pos.1, RGB::named(rltk::RED));
+        if ctx.left_click {
+            return ItemMenuResult::Cancel;
+        }
+    }
+
+    ItemMenuResult::NoResponse
 }

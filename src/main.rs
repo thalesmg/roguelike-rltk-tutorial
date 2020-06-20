@@ -30,7 +30,7 @@ use crate::game_log::GameLog;
 use crate::gui::draw_ui;
 use crate::inventory_system::ItemCollectionSystem;
 use crate::inventory_system::ItemDropSystem;
-use crate::inventory_system::PotionUseSystem;
+use crate::inventory_system::ItemUseSystem;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
 use crate::melee_combat_system::MeleeCombatSystem;
@@ -48,6 +48,7 @@ pub enum RunState {
     MonsterTurn,
     ShowInventory,
     ShowDropItem,
+    ShowTargeting { range: u32, item: Entity },
 }
 
 pub struct State {
@@ -68,8 +69,8 @@ impl State {
         damage_system.run_now(&self.ecs);
         let mut item_collection_system = ItemCollectionSystem {};
         item_collection_system.run_now(&self.ecs);
-        let mut potion_use_system = PotionUseSystem {};
-        potion_use_system.run_now(&self.ecs);
+        let mut item_use_system = ItemUseSystem {};
+        item_use_system.run_now(&self.ecs);
         let mut item_drop_system = ItemDropSystem {};
         item_drop_system.run_now(&self.ecs);
         self.ecs.maintain();
@@ -120,11 +121,26 @@ impl GameState for State {
                     // TODO check when other items exist
                     let mut wants_to_use_items = self.ecs.write_storage::<WantsToUseItem>();
                     let player_entity = self.ecs.fetch::<Entity>();
-                    wants_to_use_items
-                        .insert(*player_entity, WantsToUseItem { item: item_entity })
-                        .expect("nao consegui criar a vontade de usar!");
-                    RunState::PlayerTurn
+                    let ranged_items = self.ecs.read_storage::<Ranged>();
+                    if let Some(ranged) = ranged_items.get(item_entity) {
+                        RunState::ShowTargeting {
+                            range: ranged.range,
+                            item: item_entity,
+                        }
+                    } else {
+                        wants_to_use_items
+                            .insert(
+                                *player_entity,
+                                WantsToUseItem {
+                                    item: item_entity,
+                                    target: None,
+                                },
+                            )
+                            .expect("nao consegui criar a vontade de usar!");
+                        RunState::PlayerTurn
+                    }
                 }
+                gui::ItemMenuResult::RangeSelected(_) => RunState::PlayerTurn,
             },
             RunState::ShowDropItem => match gui::drop_item_menu(self, ctx) {
                 gui::ItemMenuResult::Cancel => RunState::AwaitingInput,
@@ -135,6 +151,26 @@ impl GameState for State {
                     intent
                         .insert(*player_entity, WantsToDropItem { item: item_entity })
                         .expect("não teve vontade de largar nada...");
+                    RunState::PlayerTurn
+                }
+                gui::ItemMenuResult::RangeSelected(_) => RunState::PlayerTurn,
+            },
+            RunState::ShowTargeting { range, item } => match gui::ranged_target(self, ctx, range) {
+                gui::ItemMenuResult::Cancel => RunState::AwaitingInput,
+                gui::ItemMenuResult::NoResponse => RunState::ShowTargeting { range, item },
+                gui::ItemMenuResult::Selected(_) => RunState::AwaitingInput,
+                gui::ItemMenuResult::RangeSelected(target) => {
+                    let mut intent = self.ecs.write_storage::<WantsToUseItem>();
+                    let player_entity = self.ecs.fetch::<Entity>();
+                    intent
+                        .insert(
+                            *player_entity,
+                            WantsToUseItem {
+                                item,
+                                target: Some(target),
+                            },
+                        )
+                        .expect("não inseri a vontade de usar um item!");
                     RunState::PlayerTurn
                 }
             },
