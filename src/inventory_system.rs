@@ -60,6 +60,7 @@ impl<'a> System<'a> for ItemUseSystem {
         ReadStorage<'a, Consumable>,
         ReadStorage<'a, InflictsDamage>,
         ReadStorage<'a, AreaOfEffect>,
+        WriteStorage<'a, Confusion>,
         WriteStorage<'a, CombatStats>,
         WriteStorage<'a, WantsToUseItem>,
         WriteStorage<'a, SufferDamage>,
@@ -76,6 +77,7 @@ impl<'a> System<'a> for ItemUseSystem {
             consumables,
             inflicts_damages,
             areas_of_effects,
+            mut confusions,
             mut combat_stats,
             mut wants_to_use_items,
             mut suffer_damages,
@@ -139,6 +141,25 @@ impl<'a> System<'a> for ItemUseSystem {
                     }
                 }
             }
+
+            let mut to_confuse = Vec::new();
+            if let Some(confusion) = confusions.get(item_user.item) {
+                for target in targets.iter() {
+                    to_confuse.push((target, confusion.turns));
+                    if entity == *player_entity {
+                        let target_name = names.get(*target).unwrap();
+                        game_log.entries.push(format!(
+                            "Você usa {} em {}, causando a maior confusão que até Deus duvida",
+                            item_name.name, target_name.name
+                        ));
+                    }
+                }
+            }
+            to_confuse.drain(..).for_each(|(target, turns)| {
+                confusions
+                    .insert(*target, Confusion { turns })
+                    .expect("não consegui confundir!");
+            });
 
             if let Some(_) = consumables.get(item_user.item) {
                 entities

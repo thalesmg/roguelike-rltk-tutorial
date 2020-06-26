@@ -120,3 +120,8 @@ pub struct Ranged {
 pub struct AreaOfEffect {
     pub radius: u32,
 }
+
+#[derive(Component)]
+pub struct Confusion {
+    pub turns: u32,
+}

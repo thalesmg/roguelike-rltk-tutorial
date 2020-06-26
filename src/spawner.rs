@@ -142,17 +142,19 @@ pub fn spawn_room(ecs: &mut World, room: &Rect) {
 }
 
 pub fn random_item(ecs: &mut World, x: usize, y: usize) {
-    let roll = {
+    let items = [
+        health_potion,
+        magic_missile_scroll,
+        fireball_scroll,
+        confusion_scroll,
+    ];
+
+    let item_fn = {
         let mut rng = ecs.fetch_mut::<RandomNumberGenerator>();
-        rng.roll_dice(1, 3)
+        rng.random_slice_entry(&items).unwrap()
     };
 
-    match roll {
-        1 => health_potion(ecs, x, y),
-        2 => magic_missile_scroll(ecs, x, y),
-        3 => fireball_scroll(ecs, x, y),
-        _ => unreachable!(),
-    }
+    item_fn(ecs, x, y);
 }
 
 pub fn health_potion(ecs: &mut World, x: usize, y: usize) {
@@ -218,5 +220,27 @@ pub fn fireball_scroll(ecs: &mut World, x: usize, y: usize) {
         .with(Ranged { range: 6 })
         .with(InflictsDamage { damage: 20 })
         .with(AreaOfEffect { radius: 3 })
+        .build();
+}
+
+pub fn confusion_scroll(ecs: &mut World, x: usize, y: usize) {
+    ecs.create_entity()
+        .with(Position {
+            x: x as i32,
+            y: y as i32,
+        })
+        .with(Renderable {
+            glyph: rltk::to_cp437(')'),
+            fg: RGB::named(rltk::PINK),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2,
+        })
+        .with(Name {
+            name: "Pergaminho de Confusão".to_string(),
+        })
+        .with(Item {})
+        .with(Consumable {})
+        .with(Confusion { turns: 4 })
+        .with(Ranged { range: 6 })
         .build();
 }
