@@ -59,6 +59,7 @@ impl<'a> System<'a> for ItemUseSystem {
         ReadStorage<'a, ProvidesHealing>,
         ReadStorage<'a, Consumable>,
         ReadStorage<'a, InflictsDamage>,
+        ReadStorage<'a, AreaOfEffect>,
         WriteStorage<'a, CombatStats>,
         WriteStorage<'a, WantsToUseItem>,
         WriteStorage<'a, SufferDamage>,
@@ -74,36 +75,67 @@ impl<'a> System<'a> for ItemUseSystem {
             healing_providers,
             consumables,
             inflicts_damages,
+            areas_of_effects,
             mut combat_stats,
             mut wants_to_use_items,
             mut suffer_damages,
         ) = data;
 
-        for (entity, item_user, stats) in (&entities, &wants_to_use_items, &mut combat_stats).join()
-        {
+        for (entity, item_user) in (&entities, &wants_to_use_items).join() {
             let item_name = names.get(item_user.item).unwrap();
+
+            let mut targets = Vec::new();
+            if let Some(target_point) = item_user.target {
+                let idx = map.xy_idx(target_point.x as usize, target_point.y as usize);
+                if let Some(aoe) = areas_of_effects.get(item_user.item) {
+                    let mut blast_tiles =
+                        rltk::field_of_view(target_point, aoe.radius as i32, &*map);
+                    blast_tiles.retain(|p| {
+                        p.x > 0
+                            && p.x < map.width as i32 - 1
+                            && p.y > 0
+                            && p.y < map.height as i32 - 1
+                    });
+                    for blast_tile in blast_tiles.iter() {
+                        let blast_tile_idx =
+                            map.xy_idx(blast_tile.x as usize, blast_tile.y as usize);
+                        for mob in map.tile_content[blast_tile_idx].iter() {
+                            targets.push(*mob);
+                        }
+                    }
+                } else {
+                    for mob in map.tile_content[idx].iter() {
+                        targets.push(*mob);
+                    }
+                }
+            } else {
+                targets.push(*player_entity);
+            }
+
             if let Some(healer) = healing_providers.get(item_user.item) {
-                stats.hp = i32::min(stats.max_hp as i32, stats.hp + healer.heal_amount as i32);
-                if entity == *player_entity {
-                    game_log.entries.push(format!(
-                        "Você toma uma talagada de {}, e cura {} hp.",
-                        item_name.name, healer.heal_amount
-                    ));
+                for target in targets.iter() {
+                    if let Some(stats) = combat_stats.get_mut(*target) {
+                        stats.hp =
+                            i32::min(stats.max_hp as i32, stats.hp + healer.heal_amount as i32);
+                        if entity == *player_entity {
+                            game_log.entries.push(format!(
+                                "Você toma uma talagada de {}, e cura {} hp.",
+                                item_name.name, healer.heal_amount
+                            ));
+                        }
+                    }
                 }
             }
 
             if let Some(InflictsDamage { damage }) = inflicts_damages.get(item_user.item) {
-                if let Some(target_point) = item_user.target {
-                    let idx = map.xy_idx(target_point.x as usize, target_point.y as usize);
-                    for mob in map.tile_content[idx].iter() {
-                        SufferDamage::new_damage(&mut suffer_damages, *mob, *damage);
-                        if entity == *player_entity {
-                            let mob_name = names.get(*mob).unwrap();
-                            game_log.entries.push(format!(
-                                "Você usa {} em {}, causando {} de dano.",
-                                item_name.name, mob_name.name, damage
-                            ));
-                        }
+                for target in targets.iter() {
+                    SufferDamage::new_damage(&mut suffer_damages, *target, *damage);
+                    if entity == *player_entity {
+                        let target_name = names.get(*target).unwrap();
+                        game_log.entries.push(format!(
+                            "Você usa {} em {}, causando {} de dano.",
+                            item_name.name, target_name.name, damage
+                        ));
                     }
                 }
             }

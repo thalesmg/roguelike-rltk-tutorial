@@ -144,13 +144,14 @@ pub fn spawn_room(ecs: &mut World, room: &Rect) {
 pub fn random_item(ecs: &mut World, x: usize, y: usize) {
     let roll = {
         let mut rng = ecs.fetch_mut::<RandomNumberGenerator>();
-        rng.rand()
+        rng.roll_dice(1, 3)
     };
 
-    if roll {
-        health_potion(ecs, x, y);
-    } else {
-        magic_missile_scroll(ecs, x, y);
+    match roll {
+        1 => health_potion(ecs, x, y),
+        2 => magic_missile_scroll(ecs, x, y),
+        3 => fireball_scroll(ecs, x, y),
+        _ => unreachable!(),
     }
 }
 
@@ -194,5 +195,28 @@ pub fn magic_missile_scroll(ecs: &mut World, x: usize, y: usize) {
         .with(Consumable {})
         .with(Ranged { range: 6 })
         .with(InflictsDamage { damage: 8 })
+        .build();
+}
+
+pub fn fireball_scroll(ecs: &mut World, x: usize, y: usize) {
+    ecs.create_entity()
+        .with(Position {
+            x: x as i32,
+            y: y as i32,
+        })
+        .with(Renderable {
+            glyph: rltk::to_cp437(')'),
+            fg: RGB::named(rltk::ORANGE),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2,
+        })
+        .with(Name {
+            name: "Pergaminho de Bola de Fogo".to_string(),
+        })
+        .with(Item {})
+        .with(Consumable {})
+        .with(Ranged { range: 6 })
+        .with(InflictsDamage { damage: 20 })
+        .with(AreaOfEffect { radius: 3 })
         .build();
 }
