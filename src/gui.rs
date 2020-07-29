@@ -7,6 +7,7 @@ use specs::prelude::*;
 use crate::components::*;
 use crate::game_log::GameLog;
 use crate::map::Map;
+use crate::RunState;
 use crate::State;
 
 #[derive(PartialEq)]
@@ -15,6 +16,19 @@ pub enum ItemMenuResult {
     NoResponse,
     Selected((Entity, String)),
     RangeSelected(Point),
+}
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum MainMenuSelection {
+    NewGame,
+    Load,
+    Quit,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub enum MainMenuResult {
+    NoSelection(MainMenuSelection),
+    Selected(MainMenuSelection),
 }
 
 pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
@@ -363,4 +377,72 @@ pub fn ranged_target(gs: &mut State, ctx: &mut Rltk, range: u32) -> ItemMenuResu
     }
 
     ItemMenuResult::NoResponse
+}
+
+pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
+    let runstate = gs.ecs.fetch::<RunState>();
+
+    ctx.print_color_centered(
+        15,
+        RGB::named(rltk::YELLOW),
+        RGB::named(rltk::BLACK),
+        "Tutorial do Rufião",
+    );
+
+    match *runstate {
+        RunState::MainMenu(selected) => {
+            ctx.print_color_centered(
+                24,
+                color_for(MainMenuSelection::NewGame, selected),
+                RGB::named(rltk::BLACK),
+                "Novo Jogo",
+            );
+            ctx.print_color_centered(
+                25,
+                color_for(MainMenuSelection::Load, selected),
+                RGB::named(rltk::BLACK),
+                "Carregar",
+            );
+            ctx.print_color_centered(
+                26,
+                color_for(MainMenuSelection::Quit, selected),
+                RGB::named(rltk::BLACK),
+                "Sair",
+            );
+
+            match ctx.key {
+                None => MainMenuResult::NoSelection(selected),
+                Some(VirtualKeyCode::Escape) => MainMenuResult::NoSelection(selected),
+                Some(VirtualKeyCode::Up) => MainMenuResult::NoSelection(previous_option(selected)),
+                Some(VirtualKeyCode::Down) => MainMenuResult::NoSelection(next_option(selected)),
+                Some(VirtualKeyCode::Return) => MainMenuResult::Selected(selected),
+                _ => MainMenuResult::NoSelection(selected),
+            }
+        }
+        _ => MainMenuResult::NoSelection(MainMenuSelection::NewGame),
+    }
+}
+
+fn color_for(item: MainMenuSelection, selected: MainMenuSelection) -> RGB {
+    if item == selected {
+        RGB::named(rltk::MAGENTA)
+    } else {
+        RGB::named(rltk::WHITE)
+    }
+}
+
+fn previous_option(selected: MainMenuSelection) -> MainMenuSelection {
+    match selected {
+        MainMenuSelection::NewGame => MainMenuSelection::Quit,
+        MainMenuSelection::Load => MainMenuSelection::NewGame,
+        MainMenuSelection::Quit => MainMenuSelection::Load,
+    }
+}
+
+fn next_option(selected: MainMenuSelection) -> MainMenuSelection {
+    match selected {
+        MainMenuSelection::NewGame => MainMenuSelection::Load,
+        MainMenuSelection::Load => MainMenuSelection::Quit,
+        MainMenuSelection::Quit => MainMenuSelection::NewGame,
+    }
 }

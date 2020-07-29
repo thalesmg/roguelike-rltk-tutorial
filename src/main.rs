@@ -28,6 +28,8 @@ use crate::components::*;
 use crate::damage_system::DamageSystem;
 use crate::game_log::GameLog;
 use crate::gui::draw_ui;
+use crate::gui::MainMenuResult;
+use crate::gui::MainMenuSelection;
 use crate::inventory_system::ItemCollectionSystem;
 use crate::inventory_system::ItemDropSystem;
 use crate::inventory_system::ItemUseSystem;
@@ -45,6 +47,7 @@ pub enum RunState {
     AwaitingInput,
     PreRun,
     PlayerTurn,
+    MainMenu(MainMenuSelection),
     MonsterTurn,
     ShowInventory,
     ShowDropItem,
@@ -174,6 +177,14 @@ impl GameState for State {
                     RunState::PlayerTurn
                 }
             },
+            RunState::MainMenu(_) => match gui::main_menu(self, ctx) {
+                MainMenuResult::NoSelection(selection) => RunState::MainMenu(selection),
+                MainMenuResult::Selected(option) => match option {
+                    MainMenuSelection::NewGame => RunState::PreRun,
+                    MainMenuSelection::Load => RunState::PreRun,
+                    MainMenuSelection::Quit => ::std::process::exit(0),
+                },
+            },
         };
 
         *self.ecs.write_resource() = newrunstate;
@@ -188,7 +199,8 @@ fn main() -> rltk::BError {
         .build()?;
     context.with_post_scanlines(true);
     let mut gs = State { ecs: World::new() };
-    gs.ecs.insert(RunState::PreRun);
+    gs.ecs
+        .insert(RunState::MainMenu(MainMenuSelection::NewGame));
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
 
     gs.ecs.register::<Position>();
